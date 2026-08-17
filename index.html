@@ -1,0 +1,2189 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/d3@7.9.0/dist/d3.min.js" integrity="sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/topojson-client@3.1.0/dist/topojson-client.min.js" integrity="sha384-Ukv1p/xTma6P4/2bY5KzWBw+ydSpXmhCMtyciIQVDJ1RmOxtCYNMF1uXT9T63H67" crossorigin="anonymous"></script>
+<script src="./maeci-data.js"></script>
+<style>
+  html, body { margin: 0; height: 100%; background: #FFFFFF; overflow: hidden; }
+  * { box-sizing: border-box; }
+  a { color: #B54708; text-decoration: none; }
+  a:hover { color: #8F3A0A; }
+  ::selection { background: #B54708; color: #FFFFFF; }
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-thumb { background: #E4E0D5; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  @keyframes mLift { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes mSlideL { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: none; } }
+  @keyframes mSlideR { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
+  @keyframes mGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes mRise { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  @keyframes mFade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes mDraw { to { stroke-dashoffset: 0; } }
+  @keyframes mLiftB { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes mSlideLB { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: none; } }
+  @keyframes mSlideRB { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
+  @keyframes mGrowB { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes mRiseB { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  @keyframes mFadeB { from { opacity: 0; } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+  }
+  [data-focus]:focus-visible { outline: 2px solid #B54708; outline-offset: 2px; }
+  .m-card { transition: transform .22s cubic-bezier(.2,.7,.3,1), box-shadow .22s ease, border-color .22s ease; }
+  .m-card:hover { transform: translateY(-3px); box-shadow: 0 20px 40px -24px rgba(28,25,23,.18); border-color: #F0C79A; }
+</style>
+</helmet>
+
+<div style="height:100vh; display:flex; font-family:'Plus Jakarta Sans',system-ui,sans-serif; color:#1C1917; background:#FFFFFF; -webkit-font-smoothing:antialiased;">
+
+  <!-- ============================ SIDEBAR ============================ -->
+  <nav style="width:{{ railW }}; flex:none; background:#FFFFFF; color:#57534A; display:flex; flex-direction:column; transition:width .32s cubic-bezier(.4,0,.2,1); overflow:hidden; border-right:1px solid #EFEBE1;">
+    <div style="padding:16px 14px 14px; border-bottom:1px solid #EFEBE1; display:flex; align-items:center; gap:10px; min-height:60px;">
+      <div style="width:22px; height:22px; flex:none; border:1.5px solid #F5A623; border-radius:4px; position:relative;">
+        <div style="position:absolute; left:2px; right:2px; bottom:2px; height:6px; background:#14A44D; border-radius:1px;"></div>
+      </div>
+      <div style="overflow:hidden; white-space:nowrap; opacity:{{ railTextOp }}; transition:opacity .2s;">
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.16em; color:#1C1917;">MAECI</div>
+        <div style="font-size:10px; letter-spacing:.04em; color:#6C685E;">Pilotage décisionnel</div>
+      </div>
+    </div>
+
+    <div style="flex:1; padding:10px 0; overflow-y:auto;">
+      <sc-for list="{{ nav }}" as="n" hint-placeholder-count="6">
+        <button type="button" data-focus="1" onClick="{{ n.go }}" title="{{ n.label }}" style="width:100%; display:flex; align-items:center; gap:11px; padding:9px 14px; margin-top:{{ n.marge }}; border-radius:0 8px 8px 0; background:{{ n.bg }}; border:0; border-left:2.5px solid {{ n.mark }}; color:{{ n.fg }}; font-family:'Plus Jakarta Sans',sans-serif; font-size:12.5px; font-weight:{{ n.fw }}; text-align:left; cursor:pointer; white-space:nowrap; transition:background .18s, color .18s;" style-hover="background:#FAF6F0; color:#1C1917;">
+          <span style="width:16px; flex:none; font-family:'IBM Plex Mono',monospace; font-size:10px; opacity:.8;">{{ n.num }}</span>
+          <span style="overflow:hidden; opacity:{{ railTextOp }}; transition:opacity .2s;">{{ n.label }}</span>
+        </button>
+      </sc-for>
+      <div style="height:1px; background:#EFEBE1; margin:10px 14px;"></div>
+      <sc-for list="{{ navFuture }}" as="n" hint-placeholder-count="3">
+        <div title="Étape 4 — non construit à ce stade" style="display:flex; align-items:center; gap:11px; padding:9px 14px; color:#A39C89; font-size:12.5px; white-space:nowrap;">
+          <span style="width:16px; flex:none; font-family:'IBM Plex Mono',monospace; font-size:10px;">{{ n.num }}</span>
+          <span style="overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1; opacity:{{ railTextOp }};">{{ n.label }}</span>
+          <span title="Étape 4" style="width:5px; height:5px; flex:none; border:1px solid #C9C2B2; border-radius:50%; opacity:{{ railTextOp }};"></span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="border-top:1px solid #EFEBE1; padding:10px 14px;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; letter-spacing:.14em; color:#6C685E; margin-bottom:6px; opacity:{{ railTextOp }};">RÔLE (DÉMONSTRATION)</div>
+      <select value="{{ role }}" onChange="{{ setRole }}" data-focus="1" style="width:100%; background:#FFFFFF; color:#3C434A; border:1px solid #DCD7CB; border-radius:6px; padding:5px 6px; font-family:'IBM Plex Mono',monospace; font-size:10.5px;">
+        <sc-for list="{{ roles }}" as="r" hint-placeholder-count="4">
+          <option value="{{ r }}">{{ r }}</option>
+        </sc-for>
+      </select>
+      <button type="button" data-focus="1" onClick="{{ toggleRail }}" style="margin-top:10px; width:100%; background:transparent; border:1px solid #DCD7CB; border-radius:6px; color:#6C685E; padding:5px; font-family:'IBM Plex Mono',monospace; font-size:10px; cursor:pointer; letter-spacing:.1em; transition:color .16s, border-color .16s;" style-hover="color:#B54708; border-color:#F0C79A;">{{ railIcon }}</button>
+    </div>
+  </nav>
+
+  <!-- ============================ COLONNE PRINCIPALE ============================ -->
+  <div style="flex:1; display:flex; flex-direction:column; min-width:0; background:#FFFFFF;">
+
+    <!-- Barre supérieure : contrôle temporel -->
+    <header style="background:#FFFFFF; border-bottom:1px solid #EFEBE1; padding:8px 16px; display:flex; align-items:center; gap:11px; min-height:56px; flex-wrap:wrap;">
+      <div style="display:flex; align-items:baseline; gap:9px; flex:none;">
+        <h1 style="margin:0; font-family:Spectral,serif; font-weight:400; font-size:23px; line-height:1.1; letter-spacing:-.01em; white-space:nowrap;">{{ titre }}</h1>
+        <span style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:.12em; color:#6C685E;">{{ sousTitre }}</span>
+      </div>
+
+      <div style="display:flex; border:1px solid #E4E0D5; border-radius:7px; overflow:hidden; background:#FFFFFF; flex:none;">
+        <sc-for list="{{ granularites }}" as="g" hint-placeholder-count="5">
+          <button type="button" data-focus="1" onClick="{{ g.go }}" style="border:0; border-right:1px solid #EDEAE2; background:{{ g.bg }}; color:{{ g.fg }}; padding:5px 10px; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.08em; cursor:pointer; transition:background .16s, color .16s;">{{ g.label }}</button>
+        </sc-for>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:6px; flex:none;">
+        <button type="button" data-focus="1" onClick="{{ prevP }}" aria-label="Période précédente" style="display:flex; align-items:center; justify-content:center; border:1px solid #E4E0D5; border-radius:6px; background:#FFF; width:26px; height:26px; padding:0; cursor:pointer; color:#3C434A; transition:border-color .16s, background .16s;" style-hover="background:#FAF6F0; border-color:#E0A66C;"><svg width="9" height="9" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <div style="min-width:104px; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:12.5px; font-weight:600; padding:3px 8px; border-radius:6px; border:1px solid #B54708; background:#B54708; color:#FFFFFF;">{{ periodeLabel }}</div>
+        <button type="button" data-focus="1" onClick="{{ nextP }}" aria-label="Période suivante" style="display:flex; align-items:center; justify-content:center; border:1px solid #E4E0D5; border-radius:6px; background:#FFF; width:26px; height:26px; padding:0; cursor:pointer; color:#3C434A; transition:border-color .16s, background .16s;" style-hover="background:#FAF6F0; border-color:#E0A66C;"><svg width="9" height="9" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+
+      <select value="{{ mode }}" onChange="{{ setMode }}" data-focus="1" title="Base de comparaison appliquée à toutes les variations affichées" style="flex:none; border:1px solid #E4E0D5; border-radius:6px; background:#FFF; padding:5px 7px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#3C434A;">
+        <option value="n1">vs même période N‑1</option>
+        <option value="prec">vs période précédente</option>
+      </select>
+
+      <div style="flex:1; min-width:6px;"></div>
+
+      <button type="button" data-focus="1" onClick="{{ toggleCarte }}" title="Afficher ou masquer la carte du monde" style="display:inline-flex; align-items:center; gap:8px; border:1px solid {{ carteBtnBd }}; border-radius:6px; background:{{ carteBtnBg }}; color:{{ carteBtnFg }}; padding:5px 11px; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.08em; cursor:pointer; white-space:nowrap; flex:none; transition:background .2s, color .2s, border-color .2s;" style-hover="border-color:#B54708;">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style="flex:none;"><circle cx="8" cy="8" r="6.2" stroke="currentColor" stroke-width="1.3"/><ellipse cx="8" cy="8" rx="2.6" ry="6.2" stroke="currentColor" stroke-width="1.1"/><path d="M1.9 8h12.2" stroke="currentColor" stroke-width="1.1"/></svg>{{ carteBtnLabel }}
+      </button>
+
+      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
+        <sc-for list="{{ puces }}" as="p" hint-placeholder-count="0">
+          <button type="button" data-focus="1" onClick="{{ p.clear }}" aria-label="Retirer le filtre {{ p.label }}" style="display:inline-flex; align-items:center; gap:7px; border:1px solid #E7A65F; border-radius:14px; color:#8F3A0A; background:#FDEEDD; padding:3px 10px; font-family:'IBM Plex Mono',monospace; font-size:10px; cursor:pointer; transition:background .16s; animation:mFade .25s ease both;" style-hover="background:#FBE0C2;">{{ p.label }}<svg width="8" height="8" viewBox="0 0 16 16" fill="none" style="flex:none;"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+        </sc-for>
+        <sc-if value="{{ aDesFiltres }}" hint-placeholder-val="{{ false }}">
+          <button type="button" data-focus="1" onClick="{{ resetFiltres }}" style="border:0; background:none; color:#5B6169; font-size:10.5px; text-decoration:underline; cursor:pointer; font-family:'IBM Plex Mono',monospace;">Tout réinitialiser</button>
+        </sc-if>
+      </div>
+    </header>
+
+    <!-- SIGNATURE : frise temporelle gravée -->
+    <div style="background:#FBFAF8; border-bottom:1px solid #E4E0D5; padding:7px 16px 5px; display:flex; align-items:center; gap:16px;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; letter-spacing:.14em; color:#6C685E; writing-mode:horizontal-tb; flex:none; width:76px; line-height:1.3;">HISTORIQUE<br />DISPONIBLE</div>
+      <div style="flex:1; display:grid; grid-template-columns:repeat(16,1fr); gap:2px; align-items:end; height:40px;">
+        <sc-for list="{{ frise }}" as="q" hint-placeholder-count="16">
+          <button type="button" data-focus="1" onClick="{{ q.go }}" title="{{ q.title }}" style="height:{{ q.h }}; background:{{ q.bg }}; border:{{ q.border }}; border-bottom:2px solid {{ q.foot }}; border-radius:2px 2px 0 0; cursor:pointer; padding:0; position:relative; transition:filter .16s, height .4s cubic-bezier(.4,0,.2,1);" style-hover="filter:brightness(.94);"></button>
+        </sc-for>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:2px; font-family:'IBM Plex Mono',monospace; font-size:8.5px; color:#5B6169; flex:none;">
+        <span style="display:flex; align-items:center; gap:5px;"><span style="width:11px;height:8px;background:#B54708; border-radius:1px;"></span>Sélection</span>
+        <span style="display:flex; align-items:center; gap:5px;"><span style="width:11px;height:8px;border:1.5px solid #B54708; border-radius:1px;"></span>Comparaison</span>
+        <span style="display:flex; align-items:center; gap:5px;"><span style="width:11px;height:8px;background:repeating-linear-gradient(45deg,#E4E0D5 0 2px,transparent 2px 4px);border:1px solid #E4E0D5; border-radius:1px;"></span>Partiel</span>
+      </div>
+    </div>
+
+    <!-- ============================ CANEVAS CARTE ============================ -->
+    <div style="flex:1; position:relative; overflow:hidden; background:#FFFFFF;">
+
+      <div style="position:absolute; top:12px; left:{{ carteLeft }}; right:{{ carteRight }}; bottom:12px; border-radius:12px; overflow:hidden; border:1px solid #EDEAE2; box-shadow:0 20px 40px -28px rgba(28,25,23,.16); opacity:{{ carteOp }}; pointer-events:{{ cartePe }}; transition:opacity .45s ease, left .38s cubic-bezier(.4,0,.2,1), right .38s cubic-bezier(.4,0,.2,1);">
+        <x-import component-from-global-scope="maeci-map" from="./maeci-map.js" hint-size="100%,100%" style="position:absolute; inset:0;" onPaysClic="{{ onPaysClic }}"></x-import>
+      </div>
+
+      <!-- Fil d'Ariane -->
+      <sc-if value="{{ montrerCarte }}" hint-placeholder-val="{{ true }}">
+      <div style="position:absolute; top:24px; left:calc({{ carteLeft }} + 12px); z-index:3; display:flex; align-items:center; gap:7px; background:rgba(255,255,255,.95); border:1px solid #E4E0D5; border-radius:8px; padding:5px 11px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; box-shadow:0 6px 16px -10px rgba(28,25,23,.25);">
+        <sc-for list="{{ ariane }}" as="a" hint-placeholder-count="1">
+          <button type="button" data-focus="1" onClick="{{ a.go }}" style="border:0; background:none; padding:0; cursor:pointer; color:{{ a.fg }}; font-family:'IBM Plex Mono',monospace; font-size:10.5px; font-weight:{{ a.fw }};" style-hover="color:#B54708;">{{ a.label }}</button>
+        </sc-for>
+        <span style="color:#6C685E; border-left:1px solid #E4E0D5; padding-left:9px;">{{ carteLegende }}</span>
+      </div>
+      </sc-if>
+
+      <!-- ---------- PANNEAU GAUCHE : KPI + visualisations ---------- -->
+      <sc-if value="{{ montrerPanneaux }}" hint-placeholder-val="{{ true }}">
+      <section style="position:absolute; top:{{ secTop }}; left:12px; right:{{ secRight }}; bottom:{{ gaucheBottom }}; z-index:4; display:grid; grid-template-columns:{{ secCols }}; align-content:start; gap:{{ secGap }}; overflow-y:auto; overflow-x:hidden; padding-right:4px; animation:{{ animPanelG }} .42s cubic-bezier(.2,.7,.3,1) both;">
+
+        <div style="grid-column:1 / -1; display:flex; justify-content:space-between; align-items:baseline; padding:0 1px;">
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.14em; color:#6C685E;">INDICATEURS DE TÊTE</span>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:9px; color:#6C685E;">{{ periodeLabel }}</span>
+        </div>
+
+        <div style="grid-column:1 / -1; display:grid; grid-template-columns:{{ kpiCols }}; gap:10px;">
+          <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="5">
+            <div class="m-card" title="{{ k.def }}" style="position:relative; background:#FFFFFF; border:1px solid #EDEAE2; border-top:3px solid {{ k.accent }}; border-radius:12px; box-shadow:0 8px 20px -16px rgba(28,25,23,.14); padding:13px 14px 14px; grid-column:{{ k.kspan }}; cursor:help; animation:{{ animCard }} .45s cubic-bezier(.2,.7,.3,1) both; animation-delay:{{ k.delay }};">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" style="position:absolute; top:12px; right:12px; color:#B0AA98;"><circle cx="8" cy="8" r="6.2" stroke="currentColor" stroke-width="1.3"/><path d="M8 7.2v4.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="5.1" r=".9" fill="currentColor"/></svg>
+              <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:.06em; color:#5B6169; line-height:1.25; min-height:{{ kpiLabelH }}; padding-right:16px;">{{ k.label }}</div>
+              <div style="font-family:'Plus Jakarta Sans',sans-serif; font-size:{{ k.taille }}; font-weight:800; letter-spacing:-.03em; line-height:1.1; margin:4px 0 5px; color:#1C1917; overflow-wrap:anywhere; font-variant-numeric:tabular-nums;">{{ k.valeur }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:9px; color:{{ k.varFg }}; line-height:1.35;">{{ k.variation }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ partiel }}" hint-placeholder-val="{{ false }}">
+          <div style="grid-column:1 / -1; display:flex; align-items:center; gap:7px; border:1px solid #F5A623; border-radius:9px; background:#FDF4E3; padding:8px 12px; font-size:10.5px; color:#8A5A05; line-height:1.4;">
+            <span style="width:9px; height:9px; flex:none; background:repeating-linear-gradient(45deg,#F5A623 0 2px,transparent 2px 4px); border:1px solid #F5A623; border-radius:2px;"></span>
+            Période en cours : données partielles, non consolidées, jamais additionnées aux trimestres clos.
+          </div>
+        </sc-if>
+
+        <!-- Visualisations -->
+        <sc-for list="{{ charts }}" as="c" hint-placeholder-count="2">
+          <div class="m-card" style="background:{{ cardBg }}; border:1px solid #EDEAE2; border-radius:12px; box-shadow:0 8px 24px -18px rgba(28,25,23,.16); backdrop-filter:{{ cardBlur }}; padding:13px 14px 15px; animation:{{ animCard }} .45s cubic-bezier(.2,.7,.3,1) both; animation-delay:{{ c.delay }};">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:3px;">
+              <span style="font-size:12px; font-weight:600; letter-spacing:-.005em; line-height:1.35; flex:1; min-width:0;">{{ c.titre }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; color:#6C685E; white-space:nowrap; flex:none; line-height:1.9;">{{ c.unite }}</span>
+            </div>
+            <div style="font-size:10px; color:#6C685E; line-height:1.4; margin-bottom:10px;">{{ c.note }}</div>
+
+            <!-- entonnoir / étapes -->
+            <sc-if value="{{ c.isSteps }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                <sc-for list="{{ c.rows }}" as="r" hint-placeholder-count="4">
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:10.5px; margin-bottom:3px;"><span>{{ r.label }}</span><span style="font-family:'IBM Plex Mono',monospace; font-weight:600;">{{ r.val }}</span></div>
+                    <div style="height:14px; background:#EDEAE2; position:relative;">
+                      <div style="height:100%; width:{{ r.w }}; background:{{ r.color }}; transform-origin:left; animation:{{ animGrow }} .6s cubic-bezier(.2,.7,.3,1) both; animation-delay:{{ r.delay }};"></div>
+                      <span style="position:absolute; right:5px; top:0; line-height:14px; font-family:'IBM Plex Mono',monospace; font-size:9px; color:#5B6169;">{{ r.conv }}</span>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <!-- barres horizontales -->
+            <sc-if value="{{ c.isBars }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex; flex-direction:column; gap:5px;">
+                <sc-for list="{{ c.rows }}" as="r" hint-placeholder-count="6">
+                  <div style="display:grid; grid-template-columns:104px 1fr 62px; align-items:center; gap:8px;">
+                    <span style="font-size:10.5px; color:#3C434A; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ r.label }}</span>
+                    <div style="height:11px; background:#EDEAE2;"><div style="height:100%; width:{{ r.w }}; background:{{ r.color }}; transform-origin:left; animation:{{ animGrow }} .55s cubic-bezier(.2,.7,.3,1) both; animation-delay:{{ r.delay }};"></div></div>
+                    <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; text-align:right;">{{ r.val }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <!-- pyramide divergente -->
+            <sc-if value="{{ c.isDiv }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex; flex-direction:column; gap:5px;">
+                <sc-for list="{{ c.rows }}" as="r" hint-placeholder-count="6">
+                  <div style="display:grid; grid-template-columns:1fr 118px 1fr; align-items:center; gap:6px;">
+                    <div style="display:flex; justify-content:flex-end; align-items:center; gap:6px;">
+                      <span style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:#5B6169;">{{ r.lval }}</span>
+                      <div style="height:12px; width:{{ r.lw }}; background:#14A44D; transform-origin:right; animation:{{ animGrow }} .55s cubic-bezier(.2,.7,.3,1) both; animation-delay:{{ r.delay }};"></div>
+                    </div>
+                    <span style="font-size:10px; text-align:center; color:#3C434A; line-height:1.2;">{{ r.label }}</span>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                      <div style="height:12px; width:{{ r.rw }}; background:#2E6FC4; transform-origin:left; animation:{{ animGrow }} .55s cubic-bezier(.2,.7,.3,1) both; animation-delay:{{ r.delay }};"></div>
+                      <span style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:#5B6169;">{{ r.rval }}</span>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex; justify-content:center; gap:18px; margin-top:9px; font-family:'IBM Plex Mono',monospace; font-size:9px; color:#5B6169;">
+                <span style="display:flex; align-items:center; gap:5px;"><span style="width:10px;height:8px;background:#14A44D;"></span>Candidates</span>
+                <span style="display:flex; align-items:center; gap:5px;"><span style="width:10px;height:8px;background:#2E6FC4;"></span>Candidats</span>
+              </div>
+            </sc-if>
+
+            <!-- entrées vs sorties -->
+            <sc-if value="{{ c.isFlow }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex; align-items:flex-end; gap:5px; height:112px;">
+                <sc-for list="{{ c.rows }}" as="r" hint-placeholder-count="8">
+                  <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; height:100%;">
+                    <div style="flex:1; width:100%; display:flex; align-items:flex-end; gap:2px;">
+                      <div title="Entrées : {{ r.inTxt }}" style="flex:1; height:{{ r.hIn }}; background:{{ r.cIn }}; transform-origin:bottom; animation:{{ animRise }} .5s cubic-bezier(.2,.7,.3,1) both; animation-delay:{{ r.delay }};"></div>
+                      <div title="Sorties : {{ r.outTxt }}" style="flex:1; height:{{ r.hOut }}; background:{{ r.cOut }}; transform-origin:bottom; animation:{{ animRise }} .5s cubic-bezier(.2,.7,.3,1) both; animation-delay:{{ r.delay }};"></div>
+                    </div>
+                    <span style="font-family:'IBM Plex Mono',monospace; font-size:8px; color:#6C685E;">{{ r.label }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex; justify-content:center; gap:16px; margin-top:8px; font-family:'IBM Plex Mono',monospace; font-size:9px; color:#5B6169;">
+                <span style="display:flex; align-items:center; gap:5px;"><span style="width:10px;height:8px;background:#2E6FC4;"></span>Entrées</span>
+                <span style="display:flex; align-items:center; gap:5px;"><span style="width:10px;height:8px;background:#14A44D;"></span>Sorties</span>
+              </div>
+            </sc-if>
+
+            <!-- histogramme vertical -->
+            <sc-if value="{{ c.isColonnes }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex; align-items:flex-end; gap:6px; height:112px;">
+                <sc-for list="{{ c.rows }}" as="r" hint-placeholder-count="8">
+                  <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; min-width:0;">
+                    <div style="width:100%; flex:1; display:flex; align-items:flex-end;">
+                      <div title="{{ r.label }} : {{ r.val }}" style="width:100%; height:{{ r.h }}; background:{{ r.color }}; border-radius:4px 4px 0 0; transform-origin:bottom; animation:{{ animRise }} .5s cubic-bezier(.2,.7,.3,1) both; animation-delay:{{ r.delay }};"></div>
+                    </div>
+                    <span style="font-family:'IBM Plex Mono',monospace; font-size:8px; color:#8A8578; white-space:nowrap;">{{ r.label }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <!-- courbe d'évolution -->
+            <sc-if value="{{ c.isLine }}" hint-placeholder-val="{{ false }}">
+              <svg viewBox="0 0 280 92" preserveAspectRatio="none" style="width:100%; height:96px; overflow:visible; display:block;">
+                <line x1="0" y1="23" x2="280" y2="23" stroke="#EDEAE2" stroke-width="1"></line>
+                <line x1="0" y1="46" x2="280" y2="46" stroke="#EDEAE2" stroke-width="1"></line>
+                <line x1="0" y1="69" x2="280" y2="69" stroke="#EDEAE2" stroke-width="1"></line>
+                <path d="{{ c.line.aire }}" fill="{{ c.line.couleur }}" fill-opacity="0.12" stroke="none"></path>
+                <path d="{{ c.line.trace }}" fill="none" stroke="{{ c.line.couleur }}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:{{ c.line.longueur }}; stroke-dashoffset:{{ c.line.longueur }}; animation:mDraw 1s cubic-bezier(.2,.7,.3,1) .1s forwards;"></path>
+                <sc-for list="{{ c.line.points }}" as="p" hint-placeholder-count="8">
+                  <circle cx="{{ p.x }}" cy="{{ p.y }}" r="2.8" fill="#FFFFFF" stroke="{{ c.line.couleur }}" stroke-width="2" style="animation:{{ animFade }} .4s ease both; animation-delay:.7s;"><title>{{ p.t }}</title></circle>
+                </sc-for>
+              </svg>
+              <div style="display:flex; justify-content:space-between; margin-top:5px; font-family:'IBM Plex Mono',monospace; font-size:8.5px; color:#8A8578;">
+                <sc-for list="{{ c.line.axe }}" as="a" hint-placeholder-count="4"><span>{{ a }}</span></sc-for>
+              </div>
+            </sc-if>
+
+            <!-- camembert / anneau -->
+            <sc-if value="{{ c.isPie }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+                <svg viewBox="0 0 100 100" style="width:112px; height:112px; flex:none; transform:rotate(-90deg);">
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="#EDEAE2" stroke-width="15"></circle>
+                  <sc-for list="{{ c.donut.segments }}" as="s" hint-placeholder-count="4">
+                    <circle cx="50" cy="50" r="40" fill="none" stroke="{{ s.color }}" stroke-width="15" stroke-dasharray="{{ s.dash }}" stroke-dashoffset="{{ s.offset }}" style="animation:{{ animFade }} .5s ease both; animation-delay:{{ s.delay }};"></circle>
+                  </sc-for>
+                </svg>
+                <div style="display:flex; flex-direction:column; gap:6px; flex:1; min-width:120px;">
+                  <sc-for list="{{ c.donut.segments }}" as="s" hint-placeholder-count="4">
+                    <div style="display:flex; align-items:center; gap:7px; font-size:10.5px;">
+                      <span style="width:9px; height:9px; flex:none; border-radius:2px; background:{{ s.color }};"></span>
+                      <span style="flex:1; min-width:0; color:#3C434A; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ s.label }}</span>
+                      <span style="font-family:'IBM Plex Mono',monospace; color:#5B6169; white-space:nowrap;">{{ s.pct }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <!-- boîtes à moustaches -->
+            <sc-if value="{{ c.isBox }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex; flex-direction:column; gap:7px;">
+                <sc-for list="{{ c.rows }}" as="r" hint-placeholder-count="6">
+                  <div style="display:grid; grid-template-columns:118px 1fr; align-items:center; gap:8px;">
+                    <span style="font-size:10px; color:#3C434A; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="{{ r.label }}">{{ r.label }}</span>
+                    <div style="position:relative; height:17px; animation:{{ animFade }} .5s ease both; animation-delay:{{ r.delay }};">
+                      <div style="position:absolute; top:8px; left:{{ r.xMin }}; width:{{ r.wWhisk }}; height:1px; background:#6C685E;"></div>
+                      <div style="position:absolute; top:3px; left:{{ r.xQ1 }}; width:{{ r.wBox }}; height:11px; background:#FBE0C2; border:1px solid #B54708;"></div>
+                      <div style="position:absolute; top:2px; left:{{ r.xMed }}; width:2px; height:13px; background:#14181C;"></div>
+                      <div style="position:absolute; top:0; left:{{ r.xCible }}; width:1px; height:17px; background:#A8241C;"></div>
+                      <div style="position:absolute; top:5px; left:{{ r.xP90 }}; width:7px; height:7px; background:{{ r.cP90 }}; transform:rotate(45deg);"></div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:12px; margin-top:9px; font-family:'IBM Plex Mono',monospace; font-size:8.5px; color:#5B6169;">
+                <span>▮ P25–P75</span><span>│ P50</span><span>◆ P90</span><span style="color:#A8241C;">│ délai cible</span>
+              </div>
+            </sc-if>
+
+            <!-- matrice de chaleur -->
+            <sc-if value="{{ c.isMatrix }}" hint-placeholder-val="{{ false }}">
+              <div style="overflow-x:auto;">
+                <div style="display:grid; grid-template-columns:{{ c.gridCols }}; gap:1px; min-width:100%;">
+                  <div></div>
+                  <sc-for list="{{ c.cols }}" as="col" hint-placeholder-count="6">
+                    <div style="font-size:8.5px; color:#5B6169; line-height:1.15; text-align:center; padding-bottom:3px; word-break:break-word;">{{ col }}</div>
+                  </sc-for>
+                  <sc-for list="{{ c.cells }}" as="cell" hint-placeholder-count="42">
+                    <div title="{{ cell.title }}" onClick="{{ cell.go }}" style="background:{{ cell.bg }}; color:{{ cell.fg }}; border:{{ cell.border }}; height:{{ cell.h }}; display:flex; align-items:center; justify-content:{{ cell.just }}; padding:0 5px; font-family:{{ cell.ff }}; font-size:{{ cell.fs }}; cursor:{{ cell.cur }}; animation:{{ animFade }} .5s ease both; animation-delay:{{ cell.delay }}; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;" style-hover="filter:brightness(.93);">{{ cell.txt }}</div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="margin-top:9px; display:flex; align-items:center; gap:8px; font-family:'IBM Plex Mono',monospace; font-size:8.5px; color:#5B6169;">
+                <span>{{ c.echelleMin }}</span>
+                <div style="flex:1; height:7px; border-radius:4px; background:linear-gradient(90deg,#F7F5F1,#B54708);"></div>
+                <span>{{ c.echelleMax }}</span>
+                <span style="border:1px dashed #A8241C; color:#A8241C; padding:0 4px;">case vide = niche non couverte</span>
+              </div>
+            </sc-if>
+
+            <!-- treemap -->
+            <sc-if value="{{ c.isTree }}" hint-placeholder-val="{{ false }}">
+              <div style="position:relative; height:150px; background:#EDEAE2;">
+                <sc-for list="{{ c.rows }}" as="r" hint-placeholder-count="8">
+                  <div title="{{ r.title }}" onClick="{{ r.go }}" style="position:absolute; left:{{ r.x }}; top:{{ r.y }}; width:{{ r.w }}; height:{{ r.h }}; background:{{ r.color }}; border:1px solid #FFFFFF; padding:{{ r.pad }}; overflow:hidden; cursor:pointer; animation:{{ animFade }} .5s ease both; animation-delay:{{ r.delay }};" style-hover="filter:brightness(1.08);">
+                    <div style="font-size:{{ r.fs }}; color:{{ r.fg }}; line-height:1.15; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ r.label }}</div>
+                    <sc-if value="{{ r.montrerVal }}" hint-placeholder-val="{{ true }}">
+                      <div style="font-family:'IBM Plex Mono',monospace; font-size:9px; color:{{ r.fg }}; opacity:.85; white-space:nowrap;">{{ r.val }}</div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <!-- frise d'évènements -->
+            <sc-if value="{{ c.isTimeline }}" hint-placeholder-val="{{ false }}">
+              <div style="position:relative; height:74px; border-bottom:1px solid #E4E0D5;">
+                <sc-for list="{{ c.rows }}" as="r" hint-placeholder-count="10">
+                  <div title="{{ r.title }}" style="position:absolute; left:{{ r.x }}; bottom:0; width:6px; height:{{ r.h }}; background:{{ r.color }}; transform-origin:bottom; animation:{{ animRise }} .55s cubic-bezier(.2,.7,.3,1) both; animation-delay:{{ r.delay }};"></div>
+                </sc-for>
+              </div>
+              <div style="display:flex; justify-content:space-between; margin-top:4px; font-family:'IBM Plex Mono',monospace; font-size:8.5px; color:#6C685E;">
+                <sc-for list="{{ c.axe }}" as="a" hint-placeholder-count="4"><span>{{ a }}</span></sc-for>
+              </div>
+              <div style="display:flex; gap:16px; margin-top:8px; font-family:'IBM Plex Mono',monospace; font-size:9px; color:#5B6169;">
+                <span style="display:flex; align-items:center; gap:5px;"><span style="width:6px;height:8px;background:#14A44D;"></span>Accords signés</span>
+                <span style="display:flex; align-items:center; gap:5px;"><span style="width:6px;height:8px;background:#F5A623;"></span>Commissions mixtes</span>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ c.isPonderation }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex; flex-direction:column; gap:9px;">
+                <sc-for list="{{ c.rows }}" as="r" hint-placeholder-count="5">
+                  <div style="display:grid; grid-template-columns:104px 1fr 42px; align-items:center; gap:9px;">
+                    <span style="display:flex; align-items:center; gap:6px; font-size:10.5px; color:#3C434A;"><span style="width:9px; height:9px; background:{{ r.couleur }}; flex:none;"></span>{{ r.label }}</span>
+                    <input type="range" min="0" max="50" step="1" value="{{ r.val }}" onInput="{{ r.set }}" data-focus="1" style="width:100%; accent-color:{{ r.couleur }}; cursor:pointer;" />
+                    <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; text-align:right; color:#14181C;">{{ r.pct }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <button type="button" data-focus="1" onClick="{{ c.reset }}" style="margin-top:11px; border:1px solid #E4E0D5; border-radius:6px; background:#FFF; color:#5B6169; padding:4px 10px; font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:.08em; cursor:pointer; transition:border-color .16s, color .16s;" style-hover="border-color:#B54708; color:#B54708;">PONDÉRATION PAR DÉFAUT</button>
+            </sc-if>
+
+            <sc-if value="{{ c.isRadar }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex; justify-content:center;">
+                <svg viewBox="0 0 200 200" style="width:100%; max-width:250px; height:auto; overflow:visible;">
+                  <sc-for list="{{ c.radar.grille }}" as="g" hint-placeholder-count="4">
+                    <polygon points="{{ g }}" fill="none" stroke="#EDEAE2" stroke-width="0.8"></polygon>
+                  </sc-for>
+                  <sc-for list="{{ c.radar.rayons }}" as="ry" hint-placeholder-count="5">
+                    <line x1="100" y1="100" x2="{{ ry.x }}" y2="{{ ry.y }}" stroke="#EDEAE2" stroke-width="0.8"></line>
+                  </sc-for>
+                  <sc-for list="{{ c.radar.series }}" as="sr" hint-placeholder-count="3">
+                    <polygon points="{{ sr.pts }}" fill="{{ sr.couleur }}" fill-opacity="0.16" stroke="{{ sr.couleur }}" stroke-width="1.8"></polygon>
+                  </sc-for>
+                  <sc-for list="{{ c.radar.etiquettes }}" as="et" hint-placeholder-count="5">
+                    <text x="{{ et.x }}" y="{{ et.y }}" text-anchor="{{ et.anchor }}" fill="#5B6169" font-size="8" font-family="'IBM Plex Mono', monospace">{{ et.nom }}</text>
+                  </sc-for>
+                </svg>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:7px; margin-top:10px;">
+                <sc-for list="{{ c.radar.series }}" as="sr" hint-placeholder-count="3">
+                  <button type="button" data-focus="1" onClick="{{ sr.retirer }}" aria-label="Retirer {{ sr.nom }} de la comparaison" style="display:inline-flex; align-items:center; gap:6px; border:1px solid {{ sr.couleur }}; background:#FFF; padding:3px 8px; font-family:'IBM Plex Mono',monospace; font-size:10px; cursor:pointer; color:#14181C; transition:background .16s;" style-hover="background:#F2EEE4;"><span style="width:9px; height:9px; background:{{ sr.couleur }};"></span>{{ sr.nom }} · {{ sr.score }}<svg width="8" height="8" viewBox="0 0 16 16" fill="none" style="flex:none; color:#6C685E;"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <div style="margin-top:10px; padding-top:7px; border-top:1px solid #EDEAE2; font-family:'IBM Plex Mono',monospace; font-size:8px; color:#6A6559; letter-spacing:.04em;">{{ c.source }}</div>
+          </div>
+        </sc-for>
+      </section>
+      </sc-if>
+
+      <!-- ---------- PANNEAU DROIT : insights, fiche pays ---------- -->
+      <sc-if value="{{ montrerDroite }}" hint-placeholder-val="{{ true }}">
+      <aside style="position:absolute; top:12px; right:12px; bottom:{{ gaucheBottom }}; width:{{ largeurD }}; z-index:4; display:flex; flex-direction:column; gap:10px; overflow-y:auto; overflow-x:hidden; padding-left:4px; animation:{{ animPanelD }} .42s cubic-bezier(.2,.7,.3,1) both;">
+
+        <sc-if value="{{ fiche }}" hint-placeholder-val="{{ false }}">
+          <div style="background:linear-gradient(155deg,#C2570A,#8F3A0A); color:#FFFFFF; border:1px solid #8F3A0A; border-radius:12px; box-shadow:0 12px 28px -16px rgba(143,58,10,.55); padding:13px 14px 14px; animation:{{ animCard }} .35s cubic-bezier(.2,.7,.3,1) both;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+              <div>
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.14em; color:#FDE4C8;">FICHE PAYS</div>
+                <div style="font-family:Spectral,serif; font-size:22px; line-height:1.15; margin-top:3px;">{{ fiche.nom }}</div>
+                <div style="font-size:10.5px; color:#FBE0C2;">{{ fiche.region }}</div>
+              </div>
+              <button type="button" data-focus="1" onClick="{{ fermerFiche }}" aria-label="Fermer la fiche pays" style="display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,.35); border-radius:6px; background:none; color:#FBE0C2; width:22px; height:22px; padding:0; cursor:pointer; transition:color .16s, border-color .16s;" style-hover="color:#FFFFFF; border-color:#FFFFFF;"><svg width="9" height="9" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1px; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.16); border-radius:9px; overflow:hidden; margin-top:11px;">
+              <sc-for list="{{ fiche.lignes }}" as="l" hint-placeholder-count="6">
+                <div style="background:rgba(0,0,0,.12); padding:7px 9px;">
+                  <div style="font-size:9px; color:#FBE0C2; text-transform:uppercase; letter-spacing:.06em;">{{ l.k }}</div>
+                  <div style="font-family:'IBM Plex Mono',monospace; font-size:13px; margin-top:2px;">{{ l.v }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <button type="button" data-focus="1" onClick="{{ fiche.filtrer }}" style="margin-top:10px; width:100%; border:1px solid rgba(255,255,255,.5); border-radius:7px; background:rgba(255,255,255,.14); color:#FFFFFF; padding:6px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.06em; cursor:pointer; transition:background .16s;" style-hover="background:rgba(255,255,255,.26);">FILTRER TOUT L’ÉCRAN SUR CE PAYS</button>
+          </div>
+        </sc-if>
+
+        <div class="m-card" style="background:{{ cardBg }}; border:1px solid #EDEAE2; border-radius:12px; box-shadow:0 8px 24px -18px rgba(28,25,23,.16); backdrop-filter:{{ cardBlur }}; padding:14px 15px 15px; animation:{{ animCard }} .45s cubic-bezier(.2,.7,.3,1) both; animation-delay:.08s;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:9px;">
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.14em; color:#6C685E;">SUR QUOI INTERVENIR</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:9px; color:#6C685E;">{{ nbAlertes }}</span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:7px;">
+            <sc-for list="{{ alertes }}" as="a" hint-placeholder-count="4">
+              <button type="button" data-focus="1" onClick="{{ a.go }}" style="text-align:left; border:1px solid #EDEAE2; border-left:3px solid {{ a.accent }}; border-radius:8px; background:#FFFFFF; padding:8px 9px; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:background .16s, border-color .16s; animation:{{ animCard }} .4s cubic-bezier(.2,.7,.3,1) both; animation-delay:{{ a.delay }};" style-hover="background:#FBF9F5; border-color:#E4E0D5;">
+                <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                  <span style="width:7px; height:7px; background:{{ a.accent }}; transform:{{ a.forme }}; flex:none;"></span>
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; letter-spacing:.1em; color:#5B6169;">{{ a.regle }}</span>
+                </div>
+                <div style="font-size:11.5px; line-height:1.45; color:#1C1917;">{{ a.phrase }}</div>
+                <div style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; color:#6C685E; margin-top:4px;">{{ a.seuil }}</div>
+              </button>
+            </sc-for>
+            <sc-if value="{{ aucuneAlerte }}" hint-placeholder-val="{{ false }}">
+              <div style="border:1px dashed #E4E0D5; border-radius:8px; padding:14px; text-align:center; font-size:11px; color:#6C685E; line-height:1.5;">Aucune règle déclenchée sur cette période et ces filtres.<br />Élargissez la période ou retirez un filtre.</div>
+            </sc-if>
+          </div>
+        </div>
+
+        <sc-for list="{{ chartsDroite }}" as="c" hint-placeholder-count="1">
+          <div class="m-card" style="background:{{ cardBg }}; border:1px solid #EDEAE2; border-radius:12px; box-shadow:0 8px 24px -18px rgba(28,25,23,.16); backdrop-filter:{{ cardBlur }}; padding:13px 14px 15px; animation:{{ animCard }} .45s cubic-bezier(.2,.7,.3,1) both; animation-delay:.14s;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+              <span style="font-size:12px; font-weight:600; line-height:1.35; flex:1; min-width:0;">{{ c.titre }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; color:#6C685E; white-space:nowrap; flex:none; line-height:1.9;">{{ c.unite }}</span>
+            </div>
+            <div style="font-size:10px; color:#6C685E; line-height:1.4; margin:2px 0 10px;">{{ c.note }}</div>
+            <div style="display:flex; flex-direction:column; gap:5px;">
+              <sc-for list="{{ c.rows }}" as="r" hint-placeholder-count="6">
+                <div style="display:grid; grid-template-columns:88px 1fr 58px; align-items:center; gap:7px;">
+                  <span style="font-size:10.5px; color:#3C434A; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ r.label }}</span>
+                  <div style="height:11px; background:#EDEAE2; border-radius:3px; overflow:hidden;"><div style="height:100%; width:{{ r.w }}; background:{{ r.color }}; transform-origin:left; animation:{{ animGrow }} .55s cubic-bezier(.2,.7,.3,1) both; animation-delay:{{ r.delay }};"></div></div>
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; text-align:right;">{{ r.val }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top:10px; padding-top:7px; border-top:1px solid #EDEAE2; font-family:'IBM Plex Mono',monospace; font-size:8px; color:#6A6559;">{{ c.source }}</div>
+          </div>
+        </sc-for>
+      </aside>
+      </sc-if>
+
+      <!-- ---------- TIROIR BAS : tableau détaillé ---------- -->
+      <div style="position:absolute; left:{{ tiroirL }}; right:{{ tiroirR }}; bottom:0; z-index:5; background:#FFFFFF; border:1px solid #E4E0D5; border-bottom:0; border-radius:12px 12px 0 0; box-shadow:0 -16px 36px -24px rgba(28,25,23,.22); transition:height .38s cubic-bezier(.4,0,.2,1); height:{{ tiroirH }}; display:flex; flex-direction:column; overflow:hidden;">
+        <button type="button" data-focus="1" onClick="{{ toggleTiroir }}" style="display:flex; align-items:center; gap:11px; width:100%; border:0; border-bottom:1px solid #EDEAE2; border-radius:12px 12px 0 0; background:#FBFAF8; padding:7px 12px; cursor:pointer; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.1em; color:#3C434A; text-align:left; white-space:nowrap; overflow:hidden; min-height:32px; transition:background .16s;" style-hover="background:#F5F1EA;">
+          <svg width="10" height="10" viewBox="0 0 16 16" fill="none" style="transform:{{ tiroirChevron }}; transition:transform .3s cubic-bezier(.4,0,.2,1); flex:none;"><path d="M3 10l5-5 5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0;">{{ tableau.titre }}</span>
+          <span style="color:#6C685E; white-space:nowrap; flex:none;">{{ tableau.compte }}</span>
+          <span style="flex:1; min-width:8px;"></span>
+          <span style="color:#6C685E; white-space:nowrap; flex:none;">{{ tiroirAction }}</span>
+        </button>
+
+        <sc-if value="{{ tiroirOuvert }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; align-items:center; gap:9px; padding:7px 12px; border-bottom:1px solid #EDEAE2; background:#FFFFFF;">
+            <input value="{{ recherche }}" onInput="{{ setRecherche }}" data-focus="1" placeholder="Rechercher…" style="border:1px solid #E4E0D5; border-radius:6px; background:#FFF; padding:4px 8px; font-family:'Plus Jakarta Sans',sans-serif; font-size:11px; width:180px;" />
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:#6C685E;">Tri : {{ triLabel }}</span>
+            <span style="flex:1;"></span>
+            <button type="button" data-focus="1" onClick="{{ exportCsv }}" style="border:1px solid #B54708; border-radius:6px; background:#B54708; color:#FFFFFF; padding:4px 10px; font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:.08em; cursor:pointer; transition:background .16s;" style-hover="background:#8F3A0A;">EXPORT CSV</button>
+          </div>
+          <div style="flex:1; overflow:auto;">
+            <table style="width:100%; border-collapse:collapse; font-size:11.5px;">
+              <thead>
+                <tr>
+                  <sc-for list="{{ tableau.cols }}" as="col" hint-placeholder-count="6">
+                    <th onClick="{{ col.tri }}" style="position:sticky; top:0; background:#F7F5F1; border-bottom:1px solid #E4E0D5; padding:6px 10px; text-align:{{ col.align }}; font-size:9.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:#3C434A; cursor:pointer; white-space:nowrap; z-index:1;" style-hover="color:#B54708;">{{ col.label }}{{ col.fleche }}</th>
+                  </sc-for>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ tableau.rows }}" as="r" hint-placeholder-count="8">
+                  <tr onClick="{{ r.go }}" style="background:{{ r.bg }}; cursor:pointer;" style-hover="background:#F7F5F1;">
+                    <sc-for list="{{ r.cells }}" as="cell" hint-placeholder-count="6">
+                      <td style="border-bottom:1px solid #EAE5D9; padding:5px 10px; text-align:{{ cell.align }}; font-family:{{ cell.ff }}; font-variant-numeric:tabular-nums; color:{{ cell.fg }}; white-space:nowrap;">
+                        <sc-if value="{{ cell.badge }}" hint-placeholder-val="{{ false }}">
+                          <span style="display:inline-flex; align-items:center; gap:5px; border:1px solid {{ cell.fg }}; padding:1px 6px; font-family:'IBM Plex Mono',monospace; font-size:9.5px;"><span style="width:6px; height:6px; background:{{ cell.fg }}; transform:{{ cell.forme }};"></span>{{ cell.txt }}</span>
+                        </sc-if>
+                        <sc-if value="{{ cell.simple }}" hint-placeholder-val="{{ true }}">{{ cell.txt }}</sc-if>
+                      </td>
+                    </sc-for>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+            <sc-if value="{{ tableauVide }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:30px; text-align:center; color:#6C685E; font-size:12px; line-height:1.6;">Aucune ligne sur cette période avec ces filtres.<br /><span style="font-size:11px;">Retirez un filtre ou reculez d’un trimestre sur la frise.</span></div>
+            </sc-if>
+          </div>
+          <div style="border-top:1px solid #EDEAE2; padding:5px 12px; background:#FFFFFF; font-family:'IBM Plex Mono',monospace; font-size:8.5px; color:#6A6559; line-height:1.5;">{{ tableau.note }}</div>
+        </sc-if>
+      </div>
+
+      <sc-if value="{{ plein }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute; top:12px; left:12px; right:12px; bottom:44px; z-index:6; background:#FFFFFF; border:1px solid #E4E0D5; border-radius:12px; overflow:hidden; overflow-y:auto; box-shadow:0 24px 50px -30px rgba(28,25,23,.3); animation:{{ animPanelG }} .42s cubic-bezier(.2,.7,.3,1) both;">
+        <div style="position:sticky; top:0; z-index:2; display:flex; align-items:baseline; gap:12px; background:#B54708; color:#FFFFFF; padding:10px 18px;">
+          <span style="font-family:Spectral,serif; font-size:19px;">{{ titre }}</span>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#FBE0C2;">{{ plein.entete }}</span>
+        </div>
+
+        <sc-if value="{{ plein.estAlertes }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:16px 18px 24px;">
+            <div style="border:1px solid #E4E0D5; border-radius:10px; background:#FFFFFF; padding:12px 14px; margin-bottom:18px;">
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.14em; color:#6C685E; margin-bottom:11px;">SEUILS — OBJET DE CONFIGURATION UNIQUE</div>
+              <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px;">
+                <sc-for list="{{ plein.seuils }}" as="s" hint-placeholder-count="4">
+                  <div style="display:grid; grid-template-columns:1fr 96px; align-items:center; gap:10px;">
+                    <div>
+                      <div style="font-size:11.5px; color:#14181C;">{{ s.label }}</div>
+                      <input type="range" min="{{ s.min }}" max="{{ s.max }}" step="{{ s.pas }}" value="{{ s.val }}" onInput="{{ s.set }}" data-focus="1" style="width:100%; accent-color:#B54708; cursor:pointer; margin-top:4px;" />
+                    </div>
+                    <div style="font-family:'IBM Plex Mono',monospace; font-size:13px; text-align:right; color:#B54708;">{{ s.val }}<span style="font-size:9px; color:#6C685E; display:block;">{{ s.unite }}</span></div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:14px;">
+              <sc-for list="{{ plein.groupes }}" as="g" hint-placeholder-count="4">
+                <div style="border:1px solid #E4E0D5; border-top:3px solid {{ g.accent }}; border-radius:10px; overflow:hidden; background:#FFFFFF; animation:{{ animCard }} .45s cubic-bezier(.2,.7,.3,1) both; animation-delay:{{ g.delay }};">
+                  <div style="display:flex; justify-content:space-between; align-items:baseline; padding:9px 12px; border-bottom:1px solid #EDEAE2;">
+                    <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.12em; color:{{ g.accent }};">{{ g.nom }}</span>
+                    <span style="font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:#6C685E;">{{ g.compte }}</span>
+                  </div>
+                  <div style="display:flex; flex-direction:column;">
+                    <sc-for list="{{ g.items }}" as="a" hint-placeholder-count="2">
+                      <button type="button" data-focus="1" onClick="{{ a.go }}" style="text-align:left; border:0; border-bottom:1px solid #EAE5D9; background:none; padding:10px 12px; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif;" style-hover="background:#F2EEE4;">
+                        <div style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; letter-spacing:.1em; color:#6C685E; margin-bottom:4px;">{{ a.module }}</div>
+                        <div style="font-size:12px; line-height:1.5; color:#14181C;">{{ a.phrase }}</div>
+                        <div style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; color:#6C685E; margin-top:5px;">{{ a.seuil }}</div>
+                      </button>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ plein.estRapport }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:20px 18px 30px; display:flex; justify-content:center; min-width:0;">
+            <div style="width:100%; max-width:820px; background:#FFFFFF; border:1px solid #E4E0D5; border-radius:14px; box-shadow:0 26px 60px -44px rgba(28,25,23,.35); padding:clamp(20px, 4vw, 38px) clamp(18px, 5vw, 44px) 34px; animation:{{ animCard }} .5s cubic-bezier(.2,.7,.3,1) both;">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:24px; border-bottom:2px solid #1C1917; padding-bottom:14px; flex-wrap:wrap;">
+                <div style="flex:1; min-width:0;">
+                  <div style="font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.14em; color:#5B6169; line-height:1.6;">MINISTÈRE DES AFFAIRES ÉTRANGÈRES<br />ET DE LA COOPÉRATION INTERNATIONALE</div>
+                  <h2 style="margin:10px 0 0; font-family:Spectral,serif; font-weight:400; font-size:clamp(22px, 3.4vw, 31px); line-height:1.12; text-wrap:pretty;">Note de synthèse au cabinet</h2>
+                </div>
+                <button type="button" data-focus="1" onClick="{{ plein.rapport.imprimer }}" style="flex:none; white-space:nowrap; align-self:flex-start; border:1px solid #B54708; border-radius:7px; background:#B54708; color:#FFFFFF; padding:8px 14px; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.1em; cursor:pointer; transition:background .16s;" style-hover="background:#8F3A0A;">IMPRIMER LA NOTE</button>
+              </div>
+              <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-top:14px; font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:#5B6169; line-height:1.6;">
+                <div>PÉRIODE<br /><span style="color:#14181C; font-size:11px;">{{ plein.rapport.periode }}</span></div>
+                <div>COMPARAISON<br /><span style="color:#14181C; font-size:11px;">{{ plein.rapport.comparaison }}</span></div>
+                <div>PÉRIMÈTRE<br /><span style="color:#14181C; font-size:11px;">{{ plein.rapport.filtres }}</span></div>
+                <div>ÉDITÉE LE<br /><span style="color:#14181C; font-size:11px;">{{ plein.rapport.date }}</span></div>
+              </div>
+              <sc-if value="{{ plein.rapport.partiel }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:14px; border:1px solid #F5A623; background:#FDF4E3; padding:7px 11px; font-size:11px; color:#8A5A05;">La période retenue comprend un trimestre en cours : les données correspondantes sont partielles et signalées comme telles.</div>
+              </sc-if>
+              <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:26px; margin-top:24px;">
+                <sc-for list="{{ plein.rapport.blocs }}" as="b" hint-placeholder-count="5">
+                  <div>
+                    <div style="font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:#5B6169; border-bottom:1px solid #E4E0D5; padding-bottom:5px;">{{ b.titre }}</div>
+                    <sc-for list="{{ b.lignes }}" as="l" hint-placeholder-count="3">
+                      <div style="display:flex; justify-content:space-between; gap:12px; padding:6px 0; border-bottom:1px solid #F7F5F1; font-size:12px;">
+                        <span style="color:#3C434A;">{{ l.k }}</span>
+                        <span style="font-family:'IBM Plex Mono',monospace; font-weight:600;">{{ l.v }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="margin-top:26px;">
+                <div style="font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:#5B6169; border-bottom:1px solid #E4E0D5; padding-bottom:5px; margin-bottom:10px;">Points d’attention</div>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                  <sc-for list="{{ plein.rapport.alertes }}" as="a" hint-placeholder-count="4">
+                    <div style="border-left:3px solid {{ a.accent }}; background:#FFFFFF; padding:8px 11px;">
+                      <div style="font-family:'IBM Plex Mono',monospace; font-size:8.5px; letter-spacing:.1em; color:#5B6169; margin-bottom:3px;">{{ a.regle }} · {{ a.module }}</div>
+                      <div style="font-size:12px; line-height:1.5;">{{ a.phrase }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="margin-top:26px; padding-top:10px; border-top:1px solid #E4E0D5; font-family:'IBM Plex Mono',monospace; font-size:8.5px; color:#6C685E; line-height:1.7;">UN ACTE EST COMPTÉ À SA DATE DE DÉPÔT · LES MONTANTS ANNONCÉS NE SONT JAMAIS ADDITIONNÉS AUX MONTANTS SIGNÉS · DÉLAIS PUBLIÉS EN P50 ET P90<br />SOURCE : PLATEFORME DE PILOTAGE DÉCISIONNEL DU MAECI</div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+      </sc-if>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1600,&quot;height&quot;:950}}">
+class Component extends DCLogic {
+  state = {
+    module: 'ensemble',
+    gran: 'trimestre',
+    ancre: '2026-T2',
+    mode: 'n1',
+    filtres: {},
+    rail: true,
+    role: 'Direction',
+    tiroir: false,
+    tri: null,
+    recherche: '',
+    seq: 0,
+    carte: false,
+    ponderation: { b: 25, a: 20, e: 30, r: 25, k: 10 },
+    radar: [],
+    fiche: null,
+    largeur: typeof window !== 'undefined' ? window.innerWidth : 1600
+  };
+
+  /* ---------------------------------------------------------------- cycle */
+  componentDidMount() {
+    this._syncUrl(true);
+    window.addEventListener('popstate', this._onPop);
+    window.addEventListener('resize', this._onResize);
+    this._paint();
+  }
+  componentDidUpdate() { this._paint(); }
+  componentWillUnmount() {
+    window.removeEventListener('popstate', this._onPop);
+    window.removeEventListener('resize', this._onResize);
+  }
+  _onResize = () => {
+    clearTimeout(this._rt);
+    this._rt = setTimeout(() => this.setState({ largeur: window.innerWidth }), 120);
+  };
+  /* Trois régimes de largeur : le panneau droit cède en premier, puis le
+     tiroir passe pleine largeur. La carte reste toujours visible. */
+  _regime() {
+    const w = this.state.largeur;
+    if (w >= 1440) return { g: '400px', d: '326px', droite: true, dl: '424px', dr: '350px' };
+    if (w >= 1120) return { g: '340px', d: '288px', droite: true, dl: '364px', dr: '312px' };
+    return { g: '322px', d: '0px', droite: false, dl: '346px', dr: '12px' };
+  }
+
+  _onPop = () => this._syncUrl(true);
+
+  _syncUrl(read) {
+    const p = new URLSearchParams(location.hash.slice(1));
+    if (read && p.get('p')) {
+      this.setState({
+        module: p.get('m') || this.state.module,
+        ancre: p.get('p'),
+        gran: p.get('g') || this.state.gran,
+        mode: p.get('c') || this.state.mode,
+        filtres: p.get('f') ? JSON.parse(decodeURIComponent(p.get('f'))) : {}
+      });
+      return;
+    }
+    const q = new URLSearchParams();
+    q.set('m', this.state.module); q.set('p', this.state.ancre);
+    q.set('g', this.state.gran); q.set('c', this.state.mode);
+    if (Object.keys(this.state.filtres).length) q.set('f', encodeURIComponent(JSON.stringify(this.state.filtres)));
+    history.replaceState(null, '', '#' + q.toString());
+  }
+
+  /* La transition entre deux périodes ou granularités remonte la carte :
+     c'est la seule animation qui enseigne quelque chose (l'agrégation). */
+  /* Le panneau n'est jamais démonté : l'animation d'entrée redémarre en
+     alternant deux jeux de keyframes identiques (suffixe B). */
+  _remonte(patch) {
+    this.setState(Object.assign({ seq: (this.state.seq || 0) + 1 }, patch));
+    clearTimeout(this._rm);
+    this._rm = setTimeout(() => this._syncUrl(false), 60);
+  }
+
+  /* La carte se met à jour APRÈS la peinture du panneau : la transition d3
+     redessine ~180 tracés par image et bloquerait sinon le rendu React. */
+  _paint() {
+    clearTimeout(this._pt);
+    if (!this.state.carte) return;
+    this._pt = setTimeout(() => {
+      const el = document.querySelector('maeci-map');
+      if (!el || !el.setLayer) return;
+      el.setLayer(this._vue().carte);
+      const f = this.state.filtres;
+      el.focusOn(f.iso3 ? { iso3: f.iso3 } : (f.continent ? { continent: f.continent } : null));
+    }, 0);
+  }
+
+  /* ------------------------------------------------------------- contexte */
+  _ctx() {
+    const M = window.MAECI;
+    const ids = M.agg.rangePeriodes(this.state.gran, this.state.ancre);
+    const cmp = M.agg.comparaison(this.state.gran, this.state.ancre, this.state.mode);
+    return { M: M, ids: ids, cmp: cmp, f: this.state.filtres };
+  }
+  _cmpLabel() {
+    const M = window.MAECI;
+    const cmp = M.agg.comparaison(this.state.gran, this.state.ancre, this.state.mode);
+    const a = M.periodes[M.pIndex[cmp[0]]], b = M.periodes[M.pIndex[cmp[cmp.length - 1]]];
+    return a === b ? a.libelle : a.libelle + '–' + b.libelle;
+  }
+  _kpi(label, valeur, cour, prec, unite, cle, taille, span) {
+    const M = window.MAECI, v = M.agg.variation(cour, prec);
+    let txt = '—', fg = '#6C685E';
+    if (v && isFinite(v.pct)) {
+      const signe = v.pct >= 0 ? '+' : '−';
+      txt = signe + M.fmt.nombre(Math.abs(v.pct), 1) + '\u202F% · ' + signe + M.fmt.nombre(Math.abs(v.abs), Math.abs(v.abs) < 10 ? 2 : 0) + '\u202F' + (unite || '') + ' · vs ' + this._cmpLabel();
+      fg = Math.abs(v.pct) >= M.seuils.variationNotable ? (v.pct >= 0 ? '#0E7C39' : '#A8241C') : '#5B6169';
+    }
+    return {
+      label: label, valeur: valeur, variation: txt, varFg: fg,
+      def: (M.dico[cle] ? M.dico[cle].nom + ' — ' + M.dico[cle].def : label),
+      taille: taille || '21px', span: span || 'auto', delay: '0s'
+    };
+  }
+  _bars(rows, max, color) {
+    const M = window.MAECI;
+    return rows.map((r, i) => ({
+      label: r.label, val: r.txt !== undefined ? r.txt : M.fmt.nombre(r.v),
+      w: (max ? Math.max(1.5, (r.v / max) * 100) : 0) + '%',
+      color: r.color || color || '#B54708', delay: (i * 0.045) + 's'
+    }));
+  }
+  /* Histogramme vertical : même grain que _bars mais en colonnes, pour lire
+     un volume trimestre par trimestre plutôt que catégorie par catégorie. */
+  _colonnes(rows, max, color) {
+    const M = window.MAECI;
+    return rows.map((r, i) => ({
+      label: r.label, val: r.txt !== undefined ? r.txt : M.fmt.nombre(r.v),
+      h: (max ? Math.max(2, (r.v / max) * 100) : 0) + '%',
+      color: r.color || color || '#B54708', delay: (i * 0.04) + 's'
+    }));
+  }
+  /* Série de n derniers trimestres ouverts pour une table de faits : la
+     seule fonction qui regarde au-delà de la période sélectionnée, pour
+     tracer une tendance de fond indépendante du filtre temporel courant. */
+  _serie(table, champ, n, f) {
+    const M = window.MAECI;
+    const periodes = M.periodesOuvertes.slice(-n);
+    return periodes.map(p => ({
+      label: p.libelle, id: p.id,
+      v: M.agg.somme(M.agg.slice(table, [p.id], f), champ)
+    }));
+  }
+  /* Courbe d'évolution : un chemin SVG (tracé + aire) sur un viewBox fixe
+     280×100, plus les points et l'axe. Le tracé s'anime par dessin
+     progressif (stroke-dashoffset), l'aire reste statique en fond léger. */
+  _courbe(rows, color) {
+    const M = window.MAECI;
+    const W = 280, H = 92, PAD = 6;
+    const vals = rows.map(r => r.v);
+    const max = Math.max.apply(null, vals.concat([1]));
+    const min = Math.min(0, Math.min.apply(null, vals));
+    const n = rows.length || 1;
+    const x = (i) => n > 1 ? (i / (n - 1)) * W : W / 2;
+    const y = (v) => H - PAD - ((v - min) / ((max - min) || 1)) * (H - PAD * 2);
+    const pts = rows.map((r, i) => ({ x: x(i), y: y(r.v), t: r.label + ' — ' + M.fmt.nombre(r.v) }));
+    const trace = pts.map((p, i) => (i ? 'L' : 'M') + p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
+    const aire = trace + ' L' + x(n - 1).toFixed(1) + ',' + H + ' L' + x(0).toFixed(1) + ',' + H + ' Z';
+    let longueur = 0;
+    for (let i = 1; i < pts.length; i++) longueur += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
+    return {
+      trace: trace, aire: aire, points: pts, couleur: color || '#B54708',
+      longueur: Math.max(1, Math.round(longueur)),
+      axe: rows.filter((r, i) => n <= 8 || i % Math.ceil(n / 8) === 0).map(r => r.label)
+    };
+  }
+  /* Camembert / anneau : segments portés par des cercles superposés au même
+     rayon, découpés via stroke-dasharray — pas de calcul d'arc SVG requis. */
+  _camembert(rows, palette) {
+    const M = window.MAECI, F = M.fmt;
+    const R = 40, C = 2 * Math.PI * R;
+    const total = rows.reduce((a, r) => a + r.v, 0) || 1;
+    const pal = palette || ['#B54708', '#2E6FC4', '#0E7C39', '#8A4FBF', '#C2830A', '#14A0A8'];
+    let acc = 0;
+    const segments = rows.map((r, i) => {
+      const frac = r.v / total;
+      const len = frac * C;
+      const seg = {
+        label: r.label, color: r.color || pal[i % pal.length],
+        pct: F.pourcent(frac * 100, 1),
+        dash: len.toFixed(1) + ' ' + (C - len).toFixed(1),
+        offset: (-acc).toFixed(1), delay: (i * 0.06) + 's'
+      };
+      acc += len;
+      return seg;
+    });
+    return { segments: segments, total: F.nombre(total) };
+  }
+
+  /* =========================== VUES PAR MODULE =========================== */
+  /* Mémoïsation : l'agrégation ne dépend que de la période, du module et des
+     filtres. Le tri, la recherche, le tiroir ou un redimensionnement ne
+     doivent pas relancer un balayage complet des tables de faits. */
+  _vue() {
+    const st = this.state;
+    const cle = [st.module, st.gran, st.ancre, st.mode, JSON.stringify(st.filtres),
+      JSON.stringify(st.ponderation), st.radar.join(','), st.largeur].join('|');
+    if (this._memoCle === cle) return this._memo;
+    const c = this._ctx(), M = c.M;
+    const key = '_vue' + st.module.charAt(0).toUpperCase() + st.module.slice(1);
+    this._memo = (this[key] || this._vueEnsemble).call(this, c, M);
+    this._memoCle = cle;
+    return this._memo;
+  }
+
+  /* --------------------------------------------------------- vue d'ensemble */
+  _vueEnsemble(c, M) {
+    const b = M.agg.slice(M.bourses, c.ids, c.f), b0 = M.agg.slice(M.bourses, c.cmp, c.f);
+    const a = M.agg.slice(M.actes, c.ids, c.f), a0 = M.agg.slice(M.actes, c.cmp, c.f);
+    const o = M.agg.slice(M.postesOI, c.ids, c.f), o0 = M.agg.slice(M.postesOI, c.cmp, c.f);
+    const p = M.agg.slice(M.projets, c.ids, c.f), p0 = M.agg.slice(M.projets, c.cmp, c.f);
+    const ac = M.agg.slice(M.accords, c.ids, c.f), ac0 = M.agg.slice(M.accords, c.cmp, c.f);
+    const S = M.agg.somme, F = M.fmt;
+
+    const kpis = [
+      this._kpi('Bourses disponibles', F.nombre(S(b, 'disponibles')), S(b, 'disponibles'), S(b0, 'disponibles'), 'bourses', 'attribution'),
+      this._kpi('Actes reçus', F.nombre(S(a, 'recus')), S(a, 'recus'), S(a0, 'recus'), 'actes', 'delai'),
+      this._kpi('Postes vacants suivis', F.nombre(S(o, 'vacants')), S(o, 'vacants'), S(o0, 'vacants'), 'postes', 'couverture'),
+      this._kpi('Montant signé', F.montant(S(p, 'montantSigne')), S(p, 'montantSigne') / 1e6, S(p0, 'montantSigne') / 1e6, 'M FCFA', 'concretisation'),
+      this._kpi('Accords signés', F.nombre(ac.length), ac.length, ac0.length, 'accords', null, '21px', 'span 2')
+    ];
+
+    // Score de coopération, formule visible : moyenne pondérée des cinq
+    // dimensions normalisées sur le maximum observé dans la période.
+    const dims = {};
+    const add = (iso, k, v) => { if (!iso) return; (dims[iso] || (dims[iso] = { b: 0, o: 0, a: 0, e: 0, r: 0 }))[k] += v; };
+    b.forEach(r => add(r.iso3, 'b', r.disponibles));
+    a.forEach(r => add(r.iso3, 'a', r.recus));
+    p.forEach(r => add(r.iso3, 'e', r.montantSigne / 1e6));
+    ac.forEach(r => add(r.iso3, 'r', 1));
+    const maxs = { b: 1, o: 1, a: 1, e: 1, r: 1 };
+    Object.keys(dims).forEach(k => Object.keys(maxs).forEach(d => { maxs[d] = Math.max(maxs[d], dims[k][d]); }));
+    const scores = {};
+    Object.keys(dims).forEach(k => {
+      const d = dims[k];
+      scores[k] = Math.round(100 * (0.25 * d.b / maxs.b + 0.2 * d.a / maxs.a + 0.3 * d.e / maxs.e + 0.25 * d.r / maxs.r));
+    });
+    const top = Object.keys(scores).map(k => ({ iso: k, v: scores[k] })).sort((x, y) => y.v - x.v).slice(0, 8);
+    const maxScore = top.length ? top[0].v : 1;
+
+    // Contribution par continent — barres groupées.
+    const cont = {};
+    b.forEach(r => { const k = M.paysIndex[r.iso3].continent; cont[k] = (cont[k] || 0) + r.disponibles; });
+    const maxCont = Math.max.apply(null, Object.keys(cont).map(k => cont[k]).concat([1]));
+
+    const carteVals = {};
+    Object.keys(scores).forEach(k => { carteVals[k] = scores[k]; });
+
+    // Deux tendances de fond, indépendantes de la période sélectionnée :
+    // 8 derniers trimestres ouverts, pour donner une lecture de cap.
+    const serieBourses = this._serie(M.bourses, 'disponibles', 8, c.f);
+    const serieActes = this._serie(M.actes, 'recus', 8, c.f);
+    const maxActes = Math.max.apply(null, serieActes.map(r => r.v).concat([1]));
+
+    return {
+      titre: 'Vue d’ensemble', sousTitre: 'CINQ DOMAINES · SCORE DE COOPÉRATION',
+      kpis: kpis,
+      carte: { values: carteVals, unite: '/ 100', bubbles: [], arcs: [] },
+      carteLegende: 'Carte : score de coopération par pays',
+      charts: [
+        {
+          titre: 'Score de coopération — pondération visible', unite: '/ 100',
+          note: 'Bourses 25 % · Actes 20 % · Investissement 30 % · Accords 25 %. Dimensions normalisées sur le maximum observé de la période.',
+          isBars: true, rows: this._bars(top.map(t => ({ label: M.paysIndex[t.iso].nom, v: t.v })), maxScore),
+          source: 'SOURCE : TABLES BOURSES, ACTES, PROJETS, ACCORDS — ' + this._maj()
+        },
+        {
+          titre: 'Bourses disponibles — évolution', unite: '8 trimestres',
+          note: 'Tendance de fond, indépendante de la période sélectionnée ci-dessus.',
+          isLine: true, line: this._courbe(serieBourses, '#B54708'),
+          source: 'SOURCE : TABLE BOURSES — ' + this._maj()
+        },
+        {
+          titre: 'Actes reçus par trimestre', unite: 'actes',
+          note: 'Volume brut reçu, 8 derniers trimestres ouverts.',
+          isColonnes: true, rows: this._colonnes(serieActes.map(r => ({ label: r.label, v: r.v })), maxActes, '#2E6FC4'),
+          source: 'SOURCE : TABLE ACTES — ' + this._maj()
+        },
+        {
+          titre: 'Bourses disponibles par continent', unite: 'bourses',
+          note: 'Répartition du volume de la période sélectionnée.',
+          isPie: true, donut: this._camembert(Object.keys(cont).sort((x, y) => cont[y] - cont[x]).map(k => ({ label: k, v: cont[k] }))),
+          source: 'SOURCE : TABLE BOURSES — ' + this._maj()
+        }
+      ],
+      chartsDroite: [],
+      tableau: this._tableauPays(c, M, scores)
+    };
+  }
+
+  /* ------------------------------------------------------------- bourses */
+  _vueBourses(c, M) {
+    const r = M.agg.slice(M.bourses, c.ids, c.f), r0 = M.agg.slice(M.bourses, c.cmp, c.f);
+    const S = M.agg.somme, F = M.fmt;
+    const disp = S(r, 'disponibles'), cand = S(r, 'candidatures'), rec = S(r, 'recevables');
+    const pre = S(r, 'preselection'), att = S(r, 'attribuees');
+    const disp0 = S(r0, 'disponibles'), att0 = S(r0, 'attribuees'), rec0 = S(r0, 'recevables');
+    const candF = S(r.filter(x => x.genre === 'F'), 'candidatures');
+    const candH = S(r.filter(x => x.genre === 'H'), 'candidatures');
+    const candF0 = S(r0.filter(x => x.genre === 'F'), 'candidatures');
+    const candH0 = S(r0.filter(x => x.genre === 'H'), 'candidatures');
+
+    const kpis = [
+      this._kpi('Bourses disponibles', F.nombre(disp), disp, disp0, 'bourses', 'attribution'),
+      this._kpi('Candidatures', F.nombre(cand), cand, S(r0, 'candidatures'), 'candidatures', 'selectivite'),
+      this._kpi('Ratio de sélectivité', F.nombre(disp ? rec / disp : 0, 2), disp ? rec / disp : 0, disp0 ? rec0 / disp0 : 0, '', 'selectivite'),
+      this._kpi('Taux d’attribution', F.pourcent(disp ? att / disp * 100 : 0), disp ? att / disp * 100 : 0, disp0 ? att0 / disp0 * 100 : 0, 'pt', 'attribution'),
+      this._kpi('Indice de parité', F.nombre(candH ? candF / candH : 0, 2), candH ? candF / candH : 0, candH0 ? candF0 / candH0 : 0, '', 'parite', '21px', 'span 2')
+    ];
+
+    const parPays = {}; r.forEach(x => { parPays[x.iso3] = (parPays[x.iso3] || 0) + x.disponibles; });
+    const topPays = Object.keys(parPays).sort((a, b) => parPays[b] - parPays[a]).slice(0, 7);
+
+    const parDom = {};
+    r.forEach(x => {
+      const d = parDom[x.domaine] || (parDom[x.domaine] = { F: 0, H: 0 });
+      d[x.genre] += x.candidatures;
+    });
+    const maxDom = Math.max.apply(null, M.domainesEtudes.map(d => Math.max((parDom[d] || {}).F || 0, (parDom[d] || {}).H || 0)).concat([1]));
+
+    const etapes = [
+      { label: 'Candidatures déposées', v: cand }, { label: 'Dossiers recevables', v: rec },
+      { label: 'Présélection', v: pre }, { label: 'Bourses attribuées', v: att }
+    ];
+
+    return {
+      titre: 'Bourses', sousTitre: 'DIRECTION DES BOURSES',
+      kpis: kpis,
+      carte: { values: parPays, unite: 'bourses' },
+      carteLegende: 'Carte : pays d’accueil, intensité = bourses disponibles',
+      charts: [
+        {
+          titre: 'Entonnoir de sélection', unite: 'candidats',
+          note: 'Taux de conversion à chaque marche. Un candidat est compté une fois par candidature, jamais par pays visé.',
+          isSteps: true,
+          rows: etapes.map((e, i) => ({
+            label: e.label, val: F.nombre(e.v), w: (cand ? Math.max(2, e.v / cand * 100) : 0) + '%',
+            conv: i === 0 ? '' : (etapes[i - 1].v ? F.pourcent(e.v / etapes[i - 1].v * 100, 0) : '—'),
+            color: ['#2E6FC4', '#14A0A8', '#0E7C39', '#14A44D'][i], delay: (i * 0.07) + 's'
+          })),
+          source: 'SOURCE : TABLE BOURSES — ' + this._maj()
+        },
+        {
+          titre: 'Candidatures par domaine et par genre', unite: 'candidatures',
+          note: 'Axe central plutôt que camembert : la comparaison de deux populations sur plusieurs catégories se lit sur un axe commun.',
+          isDiv: true,
+          rows: M.domainesEtudes.map((d, i) => {
+            const x = parDom[d] || { F: 0, H: 0 };
+            return {
+              label: d, lval: F.nombre(x.F), rval: F.nombre(x.H),
+              lw: (x.F / maxDom * 100) + '%', rw: (x.H / maxDom * 100) + '%', delay: (i * 0.05) + 's'
+            };
+          }),
+          source: 'SOURCE : TABLE BOURSES — ' + this._maj()
+        }
+      ],
+      chartsDroite: [{
+        titre: 'Pays d’accueil', unite: 'bourses disponibles',
+        note: 'Sept premiers pays sur la période et les filtres actifs.',
+        rows: this._bars(topPays.map(k => ({ label: M.paysIndex[k].nom, v: parPays[k] })), parPays[topPays[0]] || 1),
+        source: 'SOURCE : TABLE BOURSES'
+      }],
+      tableau: this._tableauBourses(c, M, r)
+    };
+  }
+
+  /* ------------------------------------------------------- emplois OI */
+  _vueEmplois(c, M) {
+    const r = M.agg.slice(M.postesOI, c.ids, c.f), r0 = M.agg.slice(M.postesOI, c.cmp, c.f);
+    const S = M.agg.somme, F = M.fmt;
+    const vac = S(r, 'vacants'), cand = S(r, 'candidatures'), pourvus = S(r, 'pourvus');
+    const couverts = S(r.filter(x => x.candidatures > 0), 'vacants');
+    const couverts0 = S(r0.filter(x => x.candidatures > 0), 'vacants');
+    const orgs = {}; r.forEach(x => { if (x.candidatures > 0) orgs[x.org] = 1; });
+
+    const kpis = [
+      this._kpi('Postes vacants', F.nombre(vac), vac, S(r0, 'vacants'), 'postes', 'couverture'),
+      this._kpi('Candidatures nationales', F.nombre(cand), cand, S(r0, 'candidatures'), 'candidatures', 'couverture'),
+      this._kpi('Taux de couverture', F.pourcent(vac ? couverts / vac * 100 : 0), vac ? couverts / vac * 100 : 0, S(r0, 'vacants') ? couverts0 / S(r0, 'vacants') * 100 : 0, 'pt', 'couverture'),
+      this._kpi('Organisations couvertes', F.nombre(Object.keys(orgs).length), Object.keys(orgs).length, Object.keys(r0.filter(x => x.candidatures > 0).reduce((o, x) => (o[x.org] = 1, o), {})).length, 'org.', 'couverture'),
+      this._kpi('Postes pourvus par un national', F.nombre(pourvus), pourvus, S(r0, 'pourvus'), 'postes', 'couverture', '21px', 'span 2')
+    ];
+
+    // Matrice organisation × domaine : la valeur est de révéler les cases vides.
+    const cells = [];
+    const grille = {};
+    r.forEach(x => {
+      const k = x.org + '|' + x.domaine;
+      const g = grille[k] || (grille[k] = { v: 0, c: 0 });
+      g.v += x.vacants; g.c += x.candidatures;
+    });
+    const orgList = M.organisations.slice(0, 10);
+    orgList.forEach((org, oi) => {
+      cells.push({
+        txt: org.code, bg: '#F7F5F1', fg: '#3C434A', border: '0', h: '22px',
+        just: 'flex-start', ff: "'Plus Jakarta Sans',sans-serif", fs: '10px', cur: 'pointer', delay: (oi * 0.02) + 's', title: org.nom, go: () => this._setFiltre('org', org.code)
+      });
+      M.domainesOI.forEach((dom, di) => {
+        const g = grille[org.code + '|' + dom];
+        const taux = g && g.v ? g.c / g.v : null;
+        const vide = !g || g.c === 0;
+        cells.push({
+          txt: vide ? '·' : F.nombre(taux * 100, 0),
+          bg: vide ? '#FFFFFF' : `rgba(181,71,8,${Math.min(1, 0.15 + taux * 0.75)})`,
+          fg: !vide && taux > 0.6 ? '#FFFFFF' : '#3C434A',
+          border: vide ? '1px dashed #D8A9A4' : '0',
+          h: '22px', just: 'center', ff: "'IBM Plex Mono',monospace", fs: '9.5px', cur: 'pointer',
+          delay: ((oi * 6 + di) * 0.012) + 's',
+          title: org.nom + ' · ' + dom + (vide ? ' — aucune candidature nationale' : ' — ' + F.pourcent(taux * 100, 0) + ' de couverture, ' + F.nombre(g.v) + ' postes'),
+          go: () => this._setFiltre('org', org.code)
+        });
+      });
+    });
+
+    const parGenre = {};
+    r.forEach(x => {
+      const d = parGenre[x.domaine] || (parGenre[x.domaine] = { F: 0, H: 0 });
+      d.F += x.candidaturesF; d.H += x.candidatures - x.candidaturesF;
+    });
+    const maxG = Math.max.apply(null, M.domainesOI.map(d => Math.max((parGenre[d] || {}).F || 0, (parGenre[d] || {}).H || 0)).concat([1]));
+
+    const bubbles = [];
+    const parOrg = {};
+    r.forEach(x => { parOrg[x.org] = (parOrg[x.org] || 0) + x.vacants; });
+    M.organisations.forEach(o => {
+      if (!parOrg[o.code]) return;
+      const p = M.paysIndex[o.siege];
+      bubbles.push({ iso3: o.code, nom: o.nom, lat: p.lat + (Math.random() - .5) * 2, lon: p.lon + (Math.random() - .5) * 2, v: parOrg[o.code], txt: F.nombre(parOrg[o.code]) + ' postes vacants · siège ' + p.nom });
+    });
+
+    return {
+      titre: 'Emplois internationaux', sousTitre: 'DIRECTION DES ORGANISATIONS INTERNATIONALES',
+      kpis: kpis,
+      carte: { values: {}, bubbles: bubbles, unite: 'postes' },
+      carteLegende: 'Carte : sièges des organisations, taille = postes vacants',
+      charts: [
+        {
+          titre: 'Couverture organisation × domaine', unite: '% de candidatures nationales',
+          note: 'Les cases en pointillé rouge sont les niches où le pays ne se positionne pas : c’est l’information à lire en premier.',
+          isMatrix: true, cols: M.domainesOI, cells: cells,
+          gridCols: '58px repeat(6, minmax(38px, 1fr))',
+          echelleMin: '0 %', echelleMax: '100 %',
+          source: 'SOURCE : TABLE POSTES_OI — ' + this._maj()
+        },
+        {
+          titre: 'Candidatures par domaine et par genre', unite: 'candidatures',
+          isDiv: true,
+          note: 'Décomposition des candidatures nationales déposées sur la période.',
+          rows: M.domainesOI.map((d, i) => {
+            const x = parGenre[d] || { F: 0, H: 0 };
+            return { label: d, lval: F.nombre(x.F), rval: F.nombre(x.H), lw: (x.F / maxG * 100) + '%', rw: (x.H / maxG * 100) + '%', delay: (i * 0.05) + 's' };
+          }),
+          source: 'SOURCE : TABLE POSTES_OI — ' + this._maj()
+        }
+      ],
+      chartsDroite: [{
+        titre: 'Postes vacants par organisation', unite: 'postes',
+        note: 'Volume ouvert sur la période sélectionnée.',
+        rows: this._bars(Object.keys(parOrg).sort((a, b) => parOrg[b] - parOrg[a]).slice(0, 7).map(k => ({ label: k, v: parOrg[k] })), Math.max.apply(null, Object.keys(parOrg).map(k => parOrg[k]).concat([1]))),
+        source: 'SOURCE : TABLE POSTES_OI'
+      }],
+      tableau: this._tableauPostes(c, M, r)
+    };
+  }
+
+  /* ---------------------------------------------------------------- actes */
+  _vueActes(c, M) {
+    const r = M.agg.slice(M.actes, c.ids, c.f), r0 = M.agg.slice(M.actes, c.cmp, c.f);
+    const S = M.agg.somme, F = M.fmt;
+    const recus = S(r, 'recus'), traites = S(r, 'traites');
+    const dernier = c.ids[c.ids.length - 1];
+    const stock = S(r.filter(x => x.pid === dernier), 'stock');
+    const q = M.agg.medianePonderee(r, 'q', 'traites'), q0 = M.agg.medianePonderee(r0, 'q', 'traites');
+    const respect = traites ? S(r, 'dansDelai') / traites * 100 : 0;
+    const respect0 = S(r0, 'traites') ? S(r0, 'dansDelai') / S(r0, 'traites') * 100 : 0;
+
+    const kpis = [
+      this._kpi('Actes reçus', F.nombre(recus), recus, S(r0, 'recus'), 'actes', 'delai'),
+      this._kpi('Actes traités', F.nombre(traites), traites, S(r0, 'traites'), 'actes', 'delai'),
+      this._kpi('Stock en cours', F.nombre(stock), stock, S(r0.filter(x => x.pid === c.cmp[c.cmp.length - 1]), 'stock'), 'actes', 'delai'),
+      this._kpi('Délai médian P50', F.nombre(q.p50, 1) + ' j', q.p50, q0.p50, 'j', 'delai'),
+      this._kpi('Respect du délai cible', F.pourcent(respect), respect, respect0, 'pt', 'respect', '21px', 'span 2')
+    ];
+
+    // Entrées vs sorties sur les 8 derniers trimestres ouverts.
+    const idx = M.pIndex[this.state.ancre];
+    const fenetre = M.periodes.slice(Math.max(0, idx - 7), idx + 1).filter(p => p.ouverte);
+    const flux = fenetre.map(p => {
+      const rows = M.agg.slice(M.actes, [p.id], c.f);
+      return { p: p, inV: S(rows, 'recus'), outV: S(rows, 'traites') };
+    });
+    const maxFlux = Math.max.apply(null, flux.map(f => Math.max(f.inV, f.outV)).concat([1]));
+
+    const parType = {};
+    r.forEach(x => {
+      const t = parType[x.type] || (parType[x.type] = { n: x.typeNom, cible: x.cible, w: 0, q: { min: 0, q1: 0, p50: 0, q3: 0, p90: 0, max: 0 } });
+      t.w += x.traites;
+      Object.keys(t.q).forEach(k => { t.q[k] += x.q[k] * x.traites; });
+    });
+    Object.keys(parType).forEach(k => { const t = parType[k]; Object.keys(t.q).forEach(z => { t.q[z] = t.w ? t.q[z] / t.w : 0; }); });
+    const maxDelai = Math.max.apply(null, Object.keys(parType).map(k => parType[k].q.max).concat([1]));
+
+    const parPays = {}; r.forEach(x => { parPays[x.iso3] = (parPays[x.iso3] || 0) + x.recus; });
+    const topPays = Object.keys(parPays).sort((a, b) => parPays[b] - parPays[a]).slice(0, 8);
+
+    return {
+      titre: 'Actes administratifs', sousTitre: 'DIRECTION DES ACTES ET LÉGALISATIONS',
+      kpis: kpis,
+      carte: { values: parPays, unite: 'actes reçus' },
+      carteLegende: 'Carte : pays émetteurs, intensité = actes reçus',
+      charts: [
+        {
+          titre: 'Entrées et sorties par trimestre', unite: 'actes',
+          note: 'La seule lecture qui dit si le stock se constitue ou se résorbe. Un acte est compté à sa date de dépôt, pas de sortie.',
+          isFlow: true,
+          rows: flux.map((f, i) => ({
+            label: 'T' + f.p.trimestre, hIn: (f.inV / maxFlux * 100) + '%', hOut: (f.outV / maxFlux * 100) + '%',
+            cIn: f.p.encours ? 'repeating-linear-gradient(45deg,#2E6FC4 0 3px,transparent 3px 6px)' : '#2E6FC4',
+            cOut: f.p.encours ? 'repeating-linear-gradient(45deg,#14A44D 0 3px,transparent 3px 6px)' : '#14A44D',
+            inTxt: F.nombre(f.inV), outTxt: F.nombre(f.outV), delay: (i * 0.05) + 's'
+          })),
+          source: 'SOURCE : TABLE ACTES — ' + this._maj()
+        },
+        {
+          titre: 'Distribution des délais par nature d’acte', unite: 'jours ouvrés',
+          note: 'Médiane et P90 plutôt que moyenne : un dossier bloqué six mois déforme la moyenne, pas la médiane.',
+          isBox: true,
+          rows: Object.keys(parType).map((k, i) => {
+            const t = parType[k], pc = (v) => (v / maxDelai * 100) + '%';
+            return {
+              label: t.n, xMin: pc(t.q.min), wWhisk: pc(t.q.max - t.q.min), xQ1: pc(t.q.q1),
+              wBox: pc(t.q.q3 - t.q.q1), xMed: pc(t.q.p50), xP90: pc(t.q.p90), xCible: pc(t.cible),
+              cP90: t.q.p90 > t.cible ? '#A8241C' : '#14A44D', delay: (i * 0.05) + 's'
+            };
+          }),
+          source: 'SOURCE : TABLE ACTES — ' + this._maj()
+        }
+      ],
+      chartsDroite: [{
+        titre: 'Pays émetteurs', unite: 'actes reçus',
+        note: 'Huit premiers postes diplomatiques émetteurs.',
+        rows: this._bars(topPays.map(k => ({ label: M.paysIndex[k].nom, v: parPays[k] })), parPays[topPays[0]] || 1),
+        source: 'SOURCE : TABLE ACTES'
+      }],
+      tableau: this._tableauActes(c, M, r)
+    };
+  }
+
+  /* ------------------------------------------------------ diplomatie éco */
+  _vueEconomique(c, M) {
+    const r = M.agg.slice(M.projets, c.ids, c.f), r0 = M.agg.slice(M.projets, c.cmp, c.f);
+    const S = M.agg.somme, F = M.fmt;
+    const missions = r.filter(x => x.mission).length;
+    const paysV = {}; r.forEach(x => { paysV[x.iso3] = 1; });
+    const annonce = S(r, 'montantAnnonce'), signe = S(r, 'montantSigne');
+    const annonce0 = S(r0, 'montantAnnonce'), signe0 = S(r0, 'montantSigne');
+
+    const kpis = [
+      this._kpi('Missions de prospection', F.nombre(missions), missions, r0.filter(x => x.mission).length, 'missions', 'concretisation'),
+      this._kpi('Pays visités', F.nombre(Object.keys(paysV).length), Object.keys(paysV).length, Object.keys(r0.reduce((o, x) => (o[x.iso3] = 1, o), {})).length, 'pays', 'concretisation'),
+      this._kpi('Montant annoncé', F.montant(annonce), annonce / 1e6, annonce0 / 1e6, 'M FCFA', 'concretisation', '18px'),
+      this._kpi('Montant signé', F.montant(signe), signe / 1e6, signe0 / 1e6, 'M FCFA', 'concretisation', '18px'),
+      this._kpi('Taux de concrétisation', F.pourcent(annonce ? signe / annonce * 100 : 0), annonce ? signe / annonce * 100 : 0, annonce0 ? signe0 / annonce0 * 100 : 0, 'pt', 'concretisation', '21px', 'span 2')
+    ];
+
+    const parStade = {};
+    r.forEach(x => { const s = parStade[x.stade] || (parStade[x.stade] = { n: 0, m: 0 }); s.n++; s.m += x.montantAnnonce; });
+    const maxStade = Math.max.apply(null, M.stades.map(s => (parStade[s] || {}).m || 0).concat([1]));
+
+    const parSecteur = {};
+    r.forEach(x => { parSecteur[x.secteur] = (parSecteur[x.secteur] || 0) + x.montantAnnonce; });
+    // Au-delà de six secteurs les tuiles deviennent des bandes illisibles :
+    // la queue de distribution est regroupée.
+    const secTri = Object.keys(parSecteur).map(k => ({ label: k, v: parSecteur[k] })).sort((a, b) => b.v - a.v);
+    const secTete = secTri.slice(0, 6);
+    const reste = secTri.slice(6).reduce((a, b) => a + b.v, 0);
+    if (reste > 0) secTete.push({ label: 'Autres secteurs (' + (secTri.length - 6) + ')', v: reste });
+    const tree = this._treemap(secTete, F);
+
+    const parPays = {}; r.forEach(x => { parPays[x.iso3] = (parPays[x.iso3] || 0) + x.montantAnnonce; });
+    const bubbles = Object.keys(parPays).map(k => {
+      const p = M.paysIndex[k];
+      const sig = S(r.filter(x => x.iso3 === k), 'montantSigne');
+      return { iso3: k, nom: p.nom, lat: p.lat, lon: p.lon, v: parPays[k], projete: sig === 0, txt: F.montant(parPays[k]) + ' annoncé · ' + F.montant(sig) + ' signé' };
+    });
+    const arcs = bubbles.slice().sort((a, b) => b.v - a.v).slice(0, 12)
+      .map(b => ({ iso3: b.iso3, lat: b.lat, lon: b.lon, w: 0.6 + b.v / (bubbles[0] ? Math.max.apply(null, bubbles.map(x => x.v)) : 1) * 2.4 }));
+
+    return {
+      titre: 'Diplomatie économique', sousTitre: 'DIRECTION DE LA DIPLOMATIE ÉCONOMIQUE',
+      kpis: kpis,
+      carte: { values: {}, bubbles: bubbles, arcs: arcs, unite: 'FCFA annoncés' },
+      carteLegende: 'Carte : montants annoncés — contour orange = aucun montant signé',
+      charts: [
+        {
+          titre: 'Transformation de l’intention en investissement', unite: 'FCFA annoncés',
+          note: 'Les stades antérieurs à la signature portent un montant annoncé, jamais additionné aux montants signés.',
+          isSteps: true,
+          rows: M.stades.map((s, i) => {
+            const x = parStade[s] || { n: 0, m: 0 };
+            return {
+              label: s + ' (' + x.n + ')', val: F.montant(x.m), w: (x.m / maxStade * 100) + '%',
+              conv: '', color: i >= 4 ? '#14A44D' : '#B8A88A', delay: (i * 0.06) + 's'
+            };
+          }),
+          source: 'SOURCE : TABLE PROJETS_ECO — ' + this._maj()
+        },
+        {
+          titre: 'Secteurs porteurs', unite: 'FCFA annoncés',
+          note: 'Surface proportionnelle au montant annoncé sur la période.',
+          isTree: true, rows: tree,
+          source: 'SOURCE : TABLE PROJETS_ECO — ' + this._maj()
+        }
+      ],
+      chartsDroite: [{
+        titre: 'Concrétisation par pays', unite: 'FCFA signés',
+        note: 'Montants effectivement signés, cohorte de la période.',
+        rows: this._bars(Object.keys(parPays).map(k => ({ label: M.paysIndex[k].nom, v: S(r.filter(x => x.iso3 === k), 'montantSigne'), txt: F.montant(S(r.filter(x => x.iso3 === k), 'montantSigne')) }))
+          .sort((a, b) => b.v - a.v).slice(0, 7), Math.max.apply(null, Object.keys(parPays).map(k => S(r.filter(x => x.iso3 === k), 'montantSigne')).concat([1]))),
+        source: 'SOURCE : TABLE PROJETS_ECO'
+      }],
+      tableau: this._tableauProjets(c, M, r)
+    };
+  }
+
+  /* -------------------------------------------------------- bilatérales */
+  _vueBilaterales(c, M) {
+    const F = M.fmt;
+    const signes = M.agg.slice(M.accords, c.ids, c.f), signes0 = M.agg.slice(M.accords, c.cmp, c.f);
+    const now = new Date(2026, 7, 11);
+    const tous = M.accords.filter(a => !c.f.iso3 || a.iso3 === c.f.iso3).filter(a => !c.f.continent || M.paysIndex[a.iso3].continent === c.f.continent);
+    const vigueur = tous.filter(a => a.echeance > now);
+    const echeance12 = vigueur.filter(a => (a.echeance - now) / 864e5 < 365);
+    const comm = M.agg.slice(M.commissions, c.ids, c.f);
+    const actifs = {}; vigueur.forEach(a => { actifs[a.iso3] = 1; });
+
+    const kpis = [
+      this._kpi('Accords signés', F.nombre(signes.length), signes.length, signes0.length, 'accords', null),
+      this._kpi('Accords en vigueur', F.nombre(vigueur.length), vigueur.length, vigueur.length, 'accords', null),
+      this._kpi('Pays partenaires actifs', F.nombre(Object.keys(actifs).length), Object.keys(actifs).length, Object.keys(actifs).length, 'pays', null),
+      this._kpi('Commissions mixtes tenues', F.nombre(comm.length), comm.length, M.agg.slice(M.commissions, c.cmp, c.f).length, 'sessions', null),
+      this._kpi('Accords à échéance sous 12 mois', F.nombre(echeance12.length), echeance12.length, echeance12.length, 'accords', null, '21px', 'span 2')
+    ];
+
+    const parPays = {}; vigueur.forEach(a => { parPays[a.iso3] = (parPays[a.iso3] || 0) + 1; });
+    const topPays = Object.keys(parPays).sort((a, b) => parPays[b] - parPays[a]).slice(0, 10);
+
+    const cells = [];
+    topPays.forEach((iso, pi) => {
+      cells.push({ txt: M.paysIndex[iso].nom, bg: '#F7F5F1', fg: '#3C434A', border: '0', h: '20px', just: 'flex-start', ff: "'Plus Jakarta Sans',sans-serif", fs: '9.5px', cur: 'pointer', delay: (pi * 0.02) + 's', title: M.paysIndex[iso].nom, go: () => this._setFiltre('iso3', iso) });
+      M.domainesCoop.forEach((d, di) => {
+        const n = vigueur.filter(a => a.iso3 === iso && a.domaine === d).length;
+        cells.push({
+          txt: n || '·', bg: n ? `rgba(181,71,8,${Math.min(1, 0.18 + n * 0.22)})` : '#FFFFFF',
+          fg: n > 2 ? '#FFFFFF' : '#3C434A', border: n ? '0' : '1px dashed #D8A9A4', h: '20px',
+          just: 'center', ff: "'IBM Plex Mono',monospace", fs: '9.5px', cur: 'pointer',
+          delay: ((pi * 6 + di) * 0.01) + 's',
+          title: M.paysIndex[iso].nom + ' · ' + d + ' — ' + n + ' accord(s) en vigueur',
+          go: () => this._setFiltre('iso3', iso)
+        });
+      });
+    });
+
+    // Partenariats dormants : plus de 24 mois sans commission mixte.
+    const derniere = {};
+    M.commissions.forEach(k => { const t = derniere[k.iso3]; if (!t || k.date > t) derniere[k.iso3] = k.date; });
+    const dormants = Object.keys(parPays).map(iso => ({
+      iso: iso, mois: derniere[iso] ? Math.round((now - derniere[iso]) / 864e5 / 30.4) : 99
+    })).filter(x => x.mois > M.seuils.dormanceMois).sort((a, b) => b.mois - a.mois).slice(0, 7);
+
+    const events = [];
+    M.periodes.filter(p => p.ouverte).forEach((p, i, arr) => {
+      const s = M.accords.filter(a => a.pid === p.id).length;
+      const k = M.commissions.filter(x => x.pid === p.id).length;
+      events.push({ x: (i / arr.length * 100) + '%', h: Math.min(100, s * 7) + '%', color: '#14A44D', title: p.libelle + ' — ' + s + ' accords signés', delay: (i * 0.03) + 's' });
+      events.push({ x: (i / arr.length * 100 + 1.8) + '%', h: Math.min(100, k * 20) + '%', color: '#F5A623', title: p.libelle + ' — ' + k + ' commissions mixtes', delay: (i * 0.03 + 0.02) + 's' });
+    });
+
+    return {
+      titre: 'Relations bilatérales', sousTitre: 'DIRECTION DES RELATIONS BILATÉRALES',
+      kpis: kpis,
+      carte: { values: parPays, unite: 'accords en vigueur' },
+      carteLegende: 'Carte : intensité de coopération = accords en vigueur',
+      charts: [
+        {
+          titre: 'Couverture pays × domaine de coopération', unite: 'accords en vigueur',
+          note: 'Dix premiers partenaires. Les cases en pointillé signalent les domaines non couverts par un accord actif.',
+          isMatrix: true, cols: M.domainesCoop, cells: cells,
+          gridCols: '96px repeat(6, minmax(30px, 1fr))', echelleMin: '0', echelleMax: '4+',
+          source: 'SOURCE : TABLE ACCORDS — ' + this._maj()
+        },
+        {
+          titre: 'Signatures et commissions mixtes', unite: 'évènements par trimestre',
+          note: 'Les commissions mixtes se concentrent en fin d’année civile.',
+          isTimeline: true, rows: events, axe: ['2023', '2024', '2025', '2026'],
+          source: 'SOURCE : TABLES ACCORDS ET COMMISSIONS — ' + this._maj()
+        }
+      ],
+      chartsDroite: [{
+        titre: 'Partenariats dormants', unite: 'mois sans commission mixte',
+        note: 'Seuil de dormance : ' + M.seuils.dormanceMois + ' mois.',
+        rows: this._bars(dormants.map(d => ({ label: M.paysIndex[d.iso].nom, v: d.mois, txt: d.mois > 90 ? 'jamais' : d.mois + ' mois' })), 60, '#F5A623'),
+        source: 'SOURCE : TABLE COMMISSIONS'
+      }],
+      tableau: this._tableauAccords(c, M, vigueur, now)
+    };
+  }
+
+  /* ==================== 07 — ANALYSE TRANSVERSALE ======================== */
+  _dimensions(c, M) {
+    const now = new Date(2026, 7, 11);
+    const d = {};
+    const add = (iso, k, v) => { if (!iso) return; (d[iso] || (d[iso] = { b: 0, a: 0, e: 0, r: 0, k: 0 }))[k] += v; };
+    M.agg.slice(M.bourses, c.ids, c.f).forEach(x => add(x.iso3, 'b', x.disponibles));
+    M.agg.slice(M.actes, c.ids, c.f).forEach(x => add(x.iso3, 'a', x.recus));
+    M.agg.slice(M.projets, c.ids, c.f).forEach(x => add(x.iso3, 'e', x.montantSigne / 1e6));
+    M.accords.filter(x => x.echeance > now).forEach(x => add(x.iso3, 'r', 1));
+    M.agg.slice(M.commissions, c.ids, c.f).forEach(x => add(x.iso3, 'k', 1));
+    const max = { b: 1, a: 1, e: 1, r: 1, k: 1 };
+    Object.keys(d).forEach(i => Object.keys(max).forEach(z => { max[z] = Math.max(max[z], d[i][z]); }));
+    const p = this.state.ponderation;
+    const tot = p.b + p.a + p.e + p.r + p.k || 1;
+    const scores = {}, norm = {};
+    Object.keys(d).forEach(i => {
+      norm[i] = { b: d[i].b / max.b, a: d[i].a / max.a, e: d[i].e / max.e, r: d[i].r / max.r, k: d[i].k / max.k };
+      scores[i] = Math.round(100 * (p.b * norm[i].b + p.a * norm[i].a + p.e * norm[i].e + p.r * norm[i].r + p.k * norm[i].k) / tot);
+    });
+    return { brut: d, norm: norm, scores: scores };
+  }
+  _vueTransversale(c, M) {
+    const F = M.fmt, D = this._dimensions(c, M), scores = D.scores;
+    const isos = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
+    const vals = isos.map(i => scores[i]);
+    const med = vals.length ? vals[Math.floor(vals.length / 2)] : 0;
+    const moy = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+
+    const axes = [
+      { k: 'b', nom: 'Bourses' }, { k: 'a', nom: 'Actes' }, { k: 'e', nom: 'Investissement' },
+      { k: 'r', nom: 'Accords' }, { k: 'k', nom: 'Commissions' }
+    ];
+    const p = this.state.ponderation;
+    const compare = (this.state.radar.length ? this.state.radar : isos.slice(0, 3)).filter(i => scores[i] !== undefined);
+    const pal = ['#B54708', '#2E6FC4', '#8A4FBF', '#0E7C39'];
+    const pt = (i, v) => {
+      const ang = (-90 + i * 72) * Math.PI / 180;
+      return [(100 + Math.cos(ang) * 78 * v).toFixed(1), (100 + Math.sin(ang) * 78 * v).toFixed(1)].join(',');
+    };
+    const radar = {
+      grille: [0.25, 0.5, 0.75, 1].map(g => axes.map((a, i) => pt(i, g)).join(' ')),
+      rayons: axes.map((a, i) => ({ x: pt(i, 1).split(',')[0], y: pt(i, 1).split(',')[1] })),
+      etiquettes: axes.map((a, i) => {
+        const ang = (-90 + i * 72) * Math.PI / 180;
+        return { nom: a.nom, x: 100 + Math.cos(ang) * 94, y: 100 + Math.sin(ang) * 94, anchor: Math.abs(Math.cos(ang)) < 0.3 ? 'middle' : (Math.cos(ang) > 0 ? 'start' : 'end') };
+      }),
+      series: compare.map((iso, k) => ({
+        nom: M.paysIndex[iso].nom, couleur: pal[k % pal.length], score: scores[iso],
+        pts: axes.map((a, i) => pt(i, D.norm[iso][a.k])).join(' '),
+        retirer: () => this.setState({ radar: compare.filter(x => x !== iso) })
+      }))
+    };
+
+    const cont = {};
+    isos.forEach(i => {
+      const k = M.paysIndex[i].continent;
+      const g = cont[k] || (cont[k] = { s: 0, n: 0 });
+      g.s += scores[i]; g.n++;
+    });
+    const maxCont = Math.max.apply(null, Object.keys(cont).map(k => cont[k].s / cont[k].n).concat([1]));
+
+    return {
+      titre: 'Analyse transversale', sousTitre: 'CROISEMENT DES CINQ DOMAINES PAR LA TABLE PAYS',
+      kpis: [
+        this._kpi('Pays suivis', F.nombre(isos.length), isos.length, isos.length, 'pays', null),
+        this._kpi('Score médian', F.nombre(med), med, med, 'pts', null),
+        this._kpi('Score moyen', F.nombre(moy, 1), moy, moy, 'pts', null),
+        this._kpi('Premier partenaire', isos.length ? M.paysIndex[isos[0]].nom : '—', 0, 0, '', null, '15px'),
+        this._kpi('Écart premier / dernier', F.nombre(vals.length ? vals[0] - vals[vals.length - 1] : 0) + ' pts', 0, 0, '', null, '21px', 'span 2')
+      ],
+      carte: { values: scores, unite: '/ 100' },
+      carteLegende: 'Carte : score de coopération recalculé selon votre pondération',
+      charts: [
+        {
+          titre: 'Formule du score — pondération modifiable', unite: 'poids relatifs',
+          note: 'Un score composite dont on ignore le calcul n’est pas défendable en réunion. Déplacez les curseurs : carte, radar et tableau se recalculent.',
+          isPonderation: true,
+          rows: axes.map((a, i) => ({
+            label: a.nom, val: p[a.k], pct: F.pourcent(p[a.k] / (p.b + p.a + p.e + p.r + p.k || 1) * 100, 0),
+            couleur: pal[i % pal.length],
+            set: (e) => {
+              const v = Object.assign({}, this.state.ponderation);
+              v[a.k] = Number(e.target.value);
+              this._memoCle = null;
+              this.setState({ ponderation: v });
+            }
+          })),
+          reset: () => { this._memoCle = null; this.setState({ ponderation: { b: 25, a: 20, e: 30, r: 25, k: 10 } }); },
+          source: 'FORMULE : Σ (poids × dimension normalisée) ÷ Σ poids — ' + this._maj()
+        },
+        {
+          titre: 'Radar comparatif', unite: 'dimensions normalisées',
+          note: 'Cliquez un pays sur la carte ou dans le tableau pour l’ajouter à la comparaison (quatre au maximum).',
+          isRadar: true, radar: radar,
+          source: 'SOURCE : CINQ TABLES DE FAITS — ' + this._maj()
+        }
+      ],
+      chartsDroite: [{
+        titre: 'Comparaison continentale', unite: 'score moyen / 100',
+        note: 'Moyenne des scores pays de chaque continent.',
+        rows: this._bars(Object.keys(cont).sort((a, b) => cont[b].s / cont[b].n - cont[a].s / cont[a].n)
+          .map(k => ({ label: k, v: Math.round(cont[k].s / cont[k].n) })), maxCont),
+        source: 'SOURCE : SCORE DE COOPÉRATION'
+      }],
+      tableau: this._tableauTransversal(c, M, D, axes)
+    };
+  }
+  _tableauTransversal(c, M, D, axes) {
+    const F = M.fmt;
+    const rows = Object.keys(D.scores).sort((a, b) => D.scores[b] - D.scores[a]).map(iso => ({
+      bg: this.state.radar.indexOf(iso) >= 0 ? '#FDEEDD' : '#FFFFFF',
+      go: () => {
+        const r = this.state.radar.slice();
+        const i = r.indexOf(iso);
+        if (i >= 0) r.splice(i, 1); else if (r.length < 4) r.push(iso);
+        this._memoCle = null;
+        this.setState({ radar: r, fiche: iso });
+      },
+      cells: [this._cell(M.paysIndex[iso].nom), this._cell(M.paysIndex[iso].continent)]
+        .concat(axes.map(a => this._cell(F.nombre(D.brut[iso][a.k], a.k === 'e' ? 1 : 0), { align: 'right', ff: "'IBM Plex Mono',monospace", sort: D.brut[iso][a.k] })))
+        .concat([this._cell(F.nombre(D.scores[iso]), { align: 'right', ff: "'IBM Plex Mono',monospace", sort: D.scores[iso], fg: '#B54708' })])
+    }));
+    return this._mkTable('Tableau maître pays × indicateurs',
+      [{ label: 'Pays' }, { label: 'Continent' }, { label: 'Bourses', align: 'right' }, { label: 'Actes', align: 'right' },
+        { label: 'Signé (M FCFA)', align: 'right' }, { label: 'Accords', align: 'right' }, { label: 'Commissions', align: 'right' },
+        { label: 'Score', align: 'right' }],
+      rows, 'Cliquez une ligne pour ajouter ou retirer le pays du radar comparatif.');
+  }
+
+  /* ========================= 08 — ALERTES ================================= */
+  _toutesAlertes() {
+    const c = this._ctx(), M = c.M, vus = {}, out = [];
+    [['Bourses', '_vueBourses'], ['Emplois internationaux', '_vueEmplois'], ['Actes', '_vueActes'],
+    ['Diplomatie économique', '_vueEconomique'], ['Relations bilatérales', '_vueBilaterales']].forEach(([nom, fn]) => {
+      const v = this[fn](c, M);
+      this._alertes(v).forEach(a => {
+        if (vus[a.phrase]) return;
+        vus[a.phrase] = 1;
+        out.push(Object.assign({}, a, { module: nom }));
+      });
+    });
+    return out;
+  }
+  _vueAlertes(c, M) {
+    const F = M.fmt, toutes = this._toutesAlertes();
+    const groupes = {};
+    toutes.forEach(a => { (groupes[a.regle] || (groupes[a.regle] = [])).push(a); });
+    const critiques = toutes.filter(a => a.accent === '#A8241C').length;
+    return {
+      titre: 'Alertes', sousTitre: 'RÈGLES APPLIQUÉES AUX DONNÉES DE LA PÉRIODE',
+      kpis: [], charts: [], chartsDroite: [],
+      carte: { values: {}, bubbles: [], arcs: [] },
+      carteLegende: 'Règles calculées',
+      plein: {
+        type: 'alertes',
+        entete: F.nombre(toutes.length) + ' règles déclenchées · ' + F.nombre(critiques) + ' au-delà du seuil critique · ' + this._periodeLabel(),
+        seuils: [
+          { cle: 'variationNotable', label: 'Variation notable', unite: '% d’écart', min: 5, max: 60, pas: 5 },
+          { cle: 'concentration', label: 'Concentration d’une entité', unite: '% d’un total', min: 20, max: 80, pas: 5 },
+          { cle: 'echeanceJours', label: 'Échéance proche', unite: 'jours', min: 30, max: 365, pas: 15 },
+          { cle: 'dormanceMois', label: 'Partenariat dormant', unite: 'mois', min: 6, max: 48, pas: 3 }
+        ].map(s => Object.assign({}, s, {
+          val: M.seuils[s.cle],
+          set: (e) => { M.seuils[s.cle] = Number(e.target.value); this._memoCle = null; this.forceUpdate(); }
+        })),
+        groupes: Object.keys(groupes).map((g, i) => ({
+          nom: g, compte: groupes[g].length + ' cas',
+          accent: groupes[g][0].accent, delay: (i * 0.05) + 's',
+          items: groupes[g].map(a => Object.assign({}, a, { delay: '0s' }))
+        }))
+      },
+      tableau: this._mkTable('Journal des règles',
+        [{ label: 'Règle' }, { label: 'Module' }, { label: 'Constat' }, { label: 'Seuil' }],
+        toutes.map(a => ({
+          bg: '#FFFFFF', go: a.go,
+          cells: [this._cell(a.regle, { fg: a.accent }), this._cell(a.module), this._cell(a.phrase), this._cell(a.seuil, { fg: '#5B6169' })]
+        })), 'Chaque ligne porte sa règle, sa valeur et son seuil. Les seuils sont regroupés dans un objet de configuration unique.')
+    };
+  }
+
+  /* ========================= 09 — RAPPORTS ================================ */
+  _vueRapports(c, M) {
+    const F = M.fmt;
+    const b = M.agg.slice(M.bourses, c.ids, c.f), a = M.agg.slice(M.actes, c.ids, c.f);
+    const o = M.agg.slice(M.postesOI, c.ids, c.f), pr = M.agg.slice(M.projets, c.ids, c.f);
+    const ac = M.agg.slice(M.accords, c.ids, c.f), S = M.agg.somme;
+    const q = M.agg.medianePonderee(a, 'q', 'traites');
+    const alertes = this._toutesAlertes().slice(0, 6);
+    const filtres = Object.keys(c.f).length
+      ? Object.keys(c.f).map(k => k === 'iso3' ? M.paysIndex[c.f[k]].nom : c.f[k]).join(' · ')
+      : 'aucun filtre — périmètre mondial';
+
+    const blocs = [
+      {
+        titre: 'Bourses', lignes: [
+          { k: 'Bourses disponibles', v: F.nombre(S(b, 'disponibles')) },
+          { k: 'Candidatures reçues', v: F.nombre(S(b, 'candidatures')) },
+          { k: 'Bourses attribuées', v: F.nombre(S(b, 'attribuees')) }
+        ]
+      },
+      {
+        titre: 'Emplois internationaux', lignes: [
+          { k: 'Postes vacants suivis', v: F.nombre(S(o, 'vacants')) },
+          { k: 'Candidatures nationales', v: F.nombre(S(o, 'candidatures')) },
+          { k: 'Postes pourvus', v: F.nombre(S(o, 'pourvus')) }
+        ]
+      },
+      {
+        titre: 'Actes administratifs', lignes: [
+          { k: 'Actes reçus', v: F.nombre(S(a, 'recus')) },
+          { k: 'Actes traités', v: F.nombre(S(a, 'traites')) },
+          { k: 'Délai P50 / P90', v: F.nombre(q.p50, 1) + ' / ' + F.nombre(q.p90, 1) + ' j' }
+        ]
+      },
+      {
+        titre: 'Diplomatie économique', lignes: [
+          { k: 'Montant annoncé', v: F.montant(S(pr, 'montantAnnonce')) },
+          { k: 'Montant signé', v: F.montant(S(pr, 'montantSigne')) },
+          { k: 'Projets suivis', v: F.nombre(pr.length) }
+        ]
+      },
+      {
+        titre: 'Relations bilatérales', lignes: [
+          { k: 'Accords signés', v: F.nombre(ac.length) },
+          { k: 'Commissions mixtes', v: F.nombre(M.agg.slice(M.commissions, c.ids, c.f).length) },
+          { k: 'Partenaires concernés', v: F.nombre(Object.keys(ac.reduce((z, x) => (z[x.iso3] = 1, z), {})).length) }
+        ]
+      }
+    ];
+
+    return {
+      titre: 'Rapports', sousTitre: 'NOTE AU CABINET — GÉNÉRATION AUTOMATIQUE',
+      kpis: [], charts: [], chartsDroite: [],
+      carte: { values: {}, bubbles: [], arcs: [] }, carteLegende: 'Note de synthèse',
+      plein: {
+        type: 'rapport',
+        entete: 'Note de synthèse · ' + this._periodeLabel(),
+        rapport: {
+          periode: this._periodeLabel(), comparaison: this._cmpLabel(), filtres: filtres,
+          date: '11 août 2026', blocs: blocs, alertes: alertes,
+          partiel: c.ids.some(i => M.periodes[M.pIndex[i]].encours),
+          imprimer: () => this._imprimer(blocs, alertes, filtres)
+        }
+      },
+      tableau: this._mkTable('Sommaire de la note',
+        [{ label: 'Section' }, { label: 'Indicateur' }, { label: 'Valeur', align: 'right' }],
+        blocs.reduce((acc, bl) => acc.concat(bl.lignes.map(l => ({
+          bg: '#FFFFFF', go: () => { },
+          cells: [this._cell(bl.titre), this._cell(l.k), this._cell(l.v, { align: 'right', ff: "'IBM Plex Mono',monospace" })]
+        }))), []), 'La note reprend la période, la base de comparaison et les filtres actifs au moment de la génération.')
+    };
+  }
+  _imprimer(blocs, alertes, filtres) {
+    const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    const html = '<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Note au cabinet — MAECI</title>'
+      + '<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@300;400;600&family=Plus+Jakarta+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">'
+      + '<style>@page{size:A4;margin:18mm 16mm}body{margin:0;font:12px/1.55 "Plus Jakarta Sans",sans-serif;color:#1C1917}'
+      + 'h1{font:400 30px/1.1 Spectral,serif;margin:0 0 4px}h2{font:600 12px/1 "Plus Jakarta Sans";letter-spacing:.1em;text-transform:uppercase;color:#5B6169;margin:22px 0 8px;border-bottom:1px solid #E4E0D5;padding-bottom:5px}'
+      + 'table{width:100%;border-collapse:collapse}td{padding:4px 0;border-bottom:1px solid #EAE5D9}td.v{text-align:right;font-family:"IBM Plex Mono",monospace;font-weight:600}'
+      + '.meta{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.06em;color:#5B6169;line-height:1.7}'
+      + '.al{border-left:3px solid #B54708;padding:7px 10px;margin-bottom:7px;background:#FBF7F1;border-radius:4px}'
+      + '.al b{font:600 9px/1 "IBM Plex Mono",monospace;letter-spacing:.1em;color:#5B6169;display:block;margin-bottom:4px}</style></head><body>'
+      + '<h1>Note de synthèse au cabinet</h1>'
+      + '<div class="meta">MINISTÈRE DES AFFAIRES ÉTRANGÈRES ET DE LA COOPÉRATION INTERNATIONALE<br>'
+      + 'PÉRIODE : ' + esc(this._periodeLabel()) + ' · COMPARAISON : ' + esc(this._cmpLabel()) + '<br>'
+      + 'PÉRIMÈTRE : ' + esc(filtres) + '<br>ÉDITÉE LE 11 AOÛT 2026 · SOURCE : PLATEFORME DE PILOTAGE DÉCISIONNEL</div>'
+      + blocs.map(b => '<h2>' + esc(b.titre) + '</h2><table>'
+        + b.lignes.map(l => '<tr><td>' + esc(l.k) + '</td><td class="v">' + esc(l.v) + '</td></tr>').join('')
+        + '</table>').join('')
+      + '<h2>Points d’attention</h2>'
+      + alertes.map(a => '<div class="al"><b>' + esc(a.regle) + ' · ' + esc(a.module) + '</b>' + esc(a.phrase) + '</div>').join('')
+      + '<div class="meta" style="margin-top:26px">Un acte est compté à sa date de dépôt. Les montants annoncés ne sont jamais additionnés aux montants signés. Les délais sont publiés en P50 et P90.</div>'
+      + '</body></html>';
+    const w = window.open('', '_blank');
+    if (!w) return;
+    w.document.write(html);
+    w.document.close();
+    setTimeout(() => w.print(), 600);
+  }
+
+  /* ---------------------------------------------------------- treemap */
+  /* Pavage squarifié : la découpe naïve produisait des bandes de 19 px dans
+     lesquelles le libellé et le montant ne tenaient pas. On travaille en
+     pixels réels pour que les proportions des tuiles soient bonnes, puis on
+     convertit en pourcentages. Le contenu s'adapte à la hauteur obtenue. */
+  _treemap(items, F) {
+    const total = items.reduce((a, b) => a + b.v, 0) || 1;
+    const HPX = 150, WPX = Math.max(240, parseInt(this._regime().g, 10) - 26);
+    const sorted = items.slice().sort((a, b) => b.v - a.v);
+    const scale = (WPX * HPX) / total;
+    const rects = [];
+
+    function pire(rangee, cote) {
+      const s = rangee.reduce((a, b) => a + b, 0);
+      const mx = Math.max.apply(null, rangee), mn = Math.min.apply(null, rangee);
+      return Math.max((cote * cote * mx) / (s * s), (s * s) / (cote * cote * mn));
+    }
+    function poser(rangee, indices, x, y, w, h, vertical) {
+      const s = rangee.reduce((a, b) => a + b, 0);
+      const epaisseur = vertical ? s / h : s / w;
+      let d = 0;
+      rangee.forEach((a, i) => {
+        const l = a / epaisseur;
+        rects.push(vertical
+          ? { i: indices[i], x: x, y: y + d, w: epaisseur, h: l }
+          : { i: indices[i], x: x + d, y: y, w: l, h: epaisseur });
+        d += l;
+      });
+      return epaisseur;
+    }
+
+    let x = 0, y = 0, w = WPX, h = HPX, k = 0;
+    let rangee = [], idx = [];
+    while (k < sorted.length) {
+      const vertical = w >= h;
+      const cote = vertical ? h : w;
+      const a = sorted[k].v * scale;
+      const test = rangee.concat([a]);
+      if (!rangee.length || pire(test, cote) <= pire(rangee, cote)) {
+        rangee = test; idx = idx.concat([k]); k++;
+      } else {
+        const e = poser(rangee, idx, x, y, w, h, vertical);
+        if (vertical) { x += e; w -= e; } else { y += e; h -= e; }
+        rangee = []; idx = [];
+      }
+    }
+    if (rangee.length) poser(rangee, idx, x, y, w, h, w >= h);
+
+    const pal = ['#B54708', '#0E7C39', '#2E6FC4', '#8A4FBF', '#E0A21B', '#14A0A8', '#E2703A', '#3F5F63'];
+    return rects.map((r) => {
+      const it = sorted[r.i];
+      const court = r.h < 32 || r.w < 66;
+      return {
+        label: court && r.h < 15 ? '' : it.label,
+        val: F.montant(it.v), montrerVal: !court,
+        fs: r.h < 22 ? '8.5px' : '9.5px', pad: r.h < 22 ? '2px 4px' : '4px 5px',
+        title: it.label + ' — ' + F.montant(it.v) + ' (' + F.pourcent(it.v / total * 100, 1) + ')',
+        x: (r.x / WPX * 100) + '%', y: (r.y / HPX * 100) + '%',
+        w: (r.w / WPX * 100) + '%', h: (r.h / HPX * 100) + '%',
+        color: pal[r.i % pal.length], fg: '#F4F1EA', delay: (r.i * 0.04) + 's',
+        go: () => this._setFiltre('secteur', it.label)
+      };
+    });
+  }
+
+  /* ========================== TABLEAUX =================================== */
+  /* Le tableau brut est mémoïsé avec la vue ; le tri et la recherche sont
+     appliqués au rendu, sans relancer l'agrégation. */
+  _mkTable(titre, cols, rows, note) {
+    return { titre: titre.toUpperCase(), note: note, colsDef: cols, brut: rows };
+  }
+  _finaliserTableau(t) {
+    const tri = this.state.tri;
+    let data = t.brut;
+    const q = this.state.recherche.trim().toLowerCase();
+    if (q) data = data.filter(r => r.cells.some(c => String(c.txt).toLowerCase().includes(q)));
+    if (tri && tri.i < t.colsDef.length) {
+      const i = tri.i, dir = tri.dir;
+      data = data.slice().sort((a, b) => {
+        const x = a.cells[i].sort !== undefined ? a.cells[i].sort : a.cells[i].txt;
+        const y = b.cells[i].sort !== undefined ? b.cells[i].sort : b.cells[i].txt;
+        return (typeof x === 'number' ? x - y : String(x).localeCompare(String(y), 'fr')) * dir;
+      });
+    }
+    return {
+      titre: t.titre, note: t.note, compte: data.length + ' lignes',
+      cols: t.colsDef.map((c, i) => ({
+        label: c.label, align: c.align || 'left',
+        fleche: tri && tri.i === i ? (tri.dir > 0 ? ' ▲' : ' ▼') : '',
+        tri: () => this.setState({ tri: tri && tri.i === i ? { i: i, dir: -tri.dir } : { i: i, dir: -1 } })
+      })),
+      rows: data.slice(0, 300)
+    };
+  }
+  _cell(txt, opts) {
+    return Object.assign({
+      txt: txt, align: 'left', ff: "'Plus Jakarta Sans',sans-serif", fg: '#14181C',
+      badge: false, simple: true, forme: 'none'
+    }, opts || {});
+  }
+  _num(v, F, dec) { return this._cell(F.nombre(v, dec), { align: 'right', ff: "'IBM Plex Mono',monospace", sort: v }); }
+
+  _tableauPays(c, M, scores) {
+    const F = M.fmt;
+    const rows = Object.keys(scores).sort((a, b) => scores[b] - scores[a]).map(iso => {
+      const p = M.paysIndex[iso];
+      const b = M.agg.somme(M.agg.slice(M.bourses, c.ids, { iso3: iso }), 'disponibles');
+      const a = M.agg.somme(M.agg.slice(M.actes, c.ids, { iso3: iso }), 'recus');
+      const e = M.agg.somme(M.agg.slice(M.projets, c.ids, { iso3: iso }), 'montantSigne');
+      const ac = M.accords.filter(x => x.iso3 === iso && x.echeance > new Date(2026, 7, 11)).length;
+      return {
+        bg: '#FFFFFF', go: () => this._ouvrirFiche(iso),
+        cells: [this._cell(p.nom), this._cell(p.continent), this._num(b, F), this._num(a, F),
+          this._cell(F.montant(e), { align: 'right', ff: "'IBM Plex Mono',monospace", sort: e }),
+          this._num(ac, F), this._num(scores[iso], F)]
+      };
+    });
+    return this._mkTable('Tableau maître pays × indicateurs',
+      [{ label: 'Pays' }, { label: 'Continent' }, { label: 'Bourses', align: 'right' }, { label: 'Actes', align: 'right' },
+        { label: 'Montant signé', align: 'right' }, { label: 'Accords', align: 'right' }, { label: 'Score', align: 'right' }],
+      rows, 'Un acte est compté à sa date de dépôt. Les montants signés excluent les projets en négociation.');
+  }
+  _tableauBourses(c, M, r) {
+    const F = M.fmt, agg = {};
+    r.forEach(x => {
+      const a = agg[x.iso3] || (agg[x.iso3] = { d: 0, c: 0, at: 0, f: 0, h: 0 });
+      a.d += x.disponibles; a.c += x.candidatures; a.at += x.attribuees;
+      if (x.genre === 'F') a.f += x.candidatures; else a.h += x.candidatures;
+    });
+    const rows = Object.keys(agg).sort((a, b) => agg[b].d - agg[a].d).map(iso => {
+      const a = agg[iso], taux = a.d ? a.at / a.d * 100 : 0;
+      return {
+        bg: '#FFFFFF', go: () => this._ouvrirFiche(iso),
+        cells: [this._cell(M.paysIndex[iso].nom), this._num(a.d, F), this._num(a.c, F), this._num(a.at, F),
+          this._cell(F.pourcent(taux), { align: 'right', ff: "'IBM Plex Mono',monospace", sort: taux, fg: taux < 60 ? '#A8241C' : '#14181C' }),
+          this._cell(F.nombre(a.h ? a.f / a.h : 0, 2), { align: 'right', ff: "'IBM Plex Mono',monospace", sort: a.h ? a.f / a.h : 0 })]
+      };
+    });
+    return this._mkTable('Bourses par pays d’accueil',
+      [{ label: 'Pays d’accueil' }, { label: 'Disponibles', align: 'right' }, { label: 'Candidatures', align: 'right' },
+        { label: 'Attribuées', align: 'right' }, { label: 'Taux d’attribution', align: 'right' }, { label: 'Indice de parité', align: 'right' }],
+      rows, 'Taux d’attribution = attribuées ÷ disponibles. Indice de parité = candidates ÷ candidats.');
+  }
+  _tableauPostes(c, M, r) {
+    const F = M.fmt, now = new Date(2026, 7, 11);
+    const rows = r.slice().sort((a, b) => a.echeance - b.echeance).slice(0, 200).map(x => {
+      const j = Math.round((x.echeance - now) / 864e5);
+      const urgent = j >= 0 && j < 30;
+      return {
+        bg: urgent ? '#FDF4E3' : '#FFFFFF', go: () => this._setFiltre('org', x.org),
+        cells: [this._cell(x.org), this._cell(x.domaine), this._cell(x.grade), this._cell(x.lieu),
+          this._num(x.vacants, F), this._num(x.candidatures, F),
+          this._cell(j < 0 ? 'échue' : j + ' j', {
+            align: 'right', ff: "'IBM Plex Mono',monospace", sort: j, badge: true, simple: false,
+            fg: j < 0 ? '#6C685E' : (urgent ? '#A8241C' : '#0E7C39'), forme: urgent ? 'rotate(45deg)' : 'none'
+          })]
+      };
+    });
+    return this._mkTable('Postes vacants et échéances',
+      [{ label: 'Organisation' }, { label: 'Domaine' }, { label: 'Grade' }, { label: 'Lieu' },
+        { label: 'Vacants', align: 'right' }, { label: 'Candidatures', align: 'right' }, { label: 'Échéance', align: 'right' }],
+      rows, 'Les échéances sous 30 jours sont mises en évidence par la forme et par la couleur.');
+  }
+  _tableauActes(c, M, r) {
+    const F = M.fmt, agg = {};
+    const dernier = c.ids[c.ids.length - 1];
+    r.forEach(x => {
+      const a = agg[x.iso3] || (agg[x.iso3] = { re: 0, tr: 0, st: 0, dd: 0, p50: 0, p90: 0, w: 0, cible: 0 });
+      a.re += x.recus; a.tr += x.traites; a.dd += x.dansDelai;
+      if (x.pid === dernier) a.st += x.stock;
+      a.p50 += x.q.p50 * x.traites; a.p90 += x.q.p90 * x.traites; a.w += x.traites; a.cible += x.cible * x.traites;
+    });
+    const rows = Object.keys(agg).sort((a, b) => agg[b].re - agg[a].re).map(iso => {
+      const a = agg[iso], p50 = a.w ? a.p50 / a.w : 0, p90 = a.w ? a.p90 / a.w : 0;
+      const cible = a.w ? a.cible / a.w : 0, respect = a.tr ? a.dd / a.tr * 100 : 0;
+      const ok = p90 <= cible;
+      return {
+        bg: '#FFFFFF', go: () => this._ouvrirFiche(iso),
+        cells: [this._cell(M.paysIndex[iso].nom), this._num(a.re, F), this._num(a.tr, F), this._num(a.st, F),
+          this._num(p50, F, 1), this._num(p90, F, 1),
+          this._cell(F.pourcent(respect), {
+            align: 'right', ff: "'IBM Plex Mono',monospace", sort: respect, badge: true, simple: false,
+            fg: ok ? '#0E7C39' : '#A8241C', forme: ok ? 'none' : 'rotate(45deg)'
+          })]
+      };
+    });
+    return this._mkTable('Actes par pays émetteur',
+      [{ label: 'Pays émetteur' }, { label: 'Reçus', align: 'right' }, { label: 'Traités', align: 'right' },
+        { label: 'Stock', align: 'right' }, { label: 'P50 (j)', align: 'right' }, { label: 'P90 (j)', align: 'right' }, { label: 'Respect du délai', align: 'right' }],
+      rows, 'Délais en jours ouvrés, pondérés par le volume traité. Le losange signale un P90 au-delà du délai cible.');
+  }
+  _tableauProjets(c, M, r) {
+    const F = M.fmt;
+    const rows = r.slice().sort((a, b) => b.montantAnnonce - a.montantAnnonce).slice(0, 200).map(x => {
+      const signe = x.montantSigne > 0;
+      return {
+        bg: '#FFFFFF', go: () => this._ouvrirFiche(x.iso3),
+        cells: [this._cell(x.partenaire), this._cell(M.paysIndex[x.iso3].nom), this._cell(x.secteur),
+          this._cell(x.stade, { badge: true, simple: false, fg: signe ? '#0E7C39' : '#8A5A05', forme: signe ? 'none' : 'rotate(45deg)' }),
+          this._cell(F.montant(x.montantAnnonce), { align: 'right', ff: "'IBM Plex Mono',monospace", sort: x.montantAnnonce, fg: '#8A5A05' }),
+          this._cell(signe ? F.montant(x.montantSigne) : '—', { align: 'right', ff: "'IBM Plex Mono',monospace", sort: x.montantSigne }),
+          this._cell(F.date(x.date), { align: 'right', ff: "'IBM Plex Mono',monospace", sort: +x.date })]
+      };
+    });
+    return this._mkTable('Fiches projet',
+      [{ label: 'Partenaire' }, { label: 'Pays' }, { label: 'Secteur' }, { label: 'Stade' },
+        { label: 'Montant annoncé', align: 'right' }, { label: 'Montant signé', align: 'right' }, { label: 'Date', align: 'right' }],
+      rows, 'Les montants annoncés (en ocre) ne sont jamais additionnés aux montants signés.');
+  }
+  _tableauAccords(c, M, vigueur, now) {
+    const F = M.fmt;
+    const rows = vigueur.slice().sort((a, b) => a.echeance - b.echeance).slice(0, 200).map(x => {
+      const j = Math.round((x.echeance - now) / 864e5);
+      const urgent = j < 365;
+      return {
+        bg: urgent ? '#FDF4E3' : '#FFFFFF', go: () => this._ouvrirFiche(x.iso3),
+        cells: [this._cell(M.paysIndex[x.iso3].nom), this._cell(x.domaine), this._cell(x.typeCoop),
+          this._cell(F.date(x.signature), { align: 'right', ff: "'IBM Plex Mono',monospace", sort: +x.signature }),
+          this._cell(F.date(x.echeance), { align: 'right', ff: "'IBM Plex Mono',monospace", sort: +x.echeance }),
+          this._cell(urgent ? 'sous ' + Math.max(0, Math.round(j / 30)) + ' mois' : 'en vigueur', {
+            align: 'right', ff: "'IBM Plex Mono',monospace", sort: j, badge: true, simple: false,
+            fg: urgent ? '#8A5A05' : '#0E7C39', forme: urgent ? 'rotate(45deg)' : 'none'
+          })]
+      };
+    });
+    return this._mkTable('Accords en vigueur',
+      [{ label: 'Pays partenaire' }, { label: 'Domaine' }, { label: 'Type' }, { label: 'Signature', align: 'right' },
+        { label: 'Échéance', align: 'right' }, { label: 'Statut', align: 'right' }],
+      rows, 'Accords dont l’échéance est postérieure à la date du jour. Les échéances sous 12 mois sont mises en évidence.');
+  }
+
+  /* ========================== ALERTES CALCULÉES =========================== */
+  _alertes(vue) {
+    const M = window.MAECI, c = this._ctx(), F = M.fmt, out = [];
+    const S = M.agg.somme;
+
+    // Règle 1 — variation notable sur un KPI de tête.
+    vue.kpis.forEach(k => {
+      const m = /^([+−])([\d\u202F,]+)\u202F%/.exec(k.variation || '');
+      if (!m) return;
+      const val = parseFloat(m[2].replace(/\u202F/g, '').replace(',', '.'));
+      if (val >= M.seuils.variationNotable) {
+        out.push({
+          regle: 'VARIATION NOTABLE', accent: m[1] === '+' ? '#0E7C39' : '#A8241C',
+          forme: m[1] === '+' ? 'none' : 'rotate(45deg)',
+          phrase: k.label + ' : ' + k.valeur + ' sur ' + this._periodeLabel() + ', ' + k.variation.replace(' · vs', ', soit un écart de').replace(/·/g, '·') + '.',
+          seuil: 'Seuil : écart supérieur à ' + M.seuils.variationNotable + ' % vs base de comparaison.',
+          go: () => { }
+        });
+      }
+    });
+
+    // Règle 2 — concentration : une entité dépasse 40 % d'un total.
+    const b = M.agg.slice(M.bourses, c.ids, c.f);
+    const parPays = {}; b.forEach(x => { parPays[x.iso3] = (parPays[x.iso3] || 0) + x.disponibles; });
+    const tot = S(b, 'disponibles');
+    Object.keys(parPays).forEach(iso => {
+      const part = tot ? parPays[iso] / tot * 100 : 0;
+      if (part > M.seuils.concentration) {
+        out.push({
+          regle: 'CONCENTRATION', accent: '#B4740E', forme: 'rotate(45deg)',
+          phrase: M.paysIndex[iso].nom + ' concentre ' + F.pourcent(part) + ' des bourses disponibles de la période (' + F.nombre(parPays[iso]) + ' sur ' + F.nombre(tot) + ').',
+          seuil: 'Seuil : une entité au-delà de ' + M.seuils.concentration + ' % d’un total.',
+          go: () => this._setFiltre('iso3', iso)
+        });
+      }
+    });
+
+    // Règle 3 — dérive de délai : P90 au-delà du délai cible.
+    const a = M.agg.slice(M.actes, c.ids, c.f);
+    const parType = {};
+    a.forEach(x => {
+      const t = parType[x.type] || (parType[x.type] = { n: x.typeNom, cible: x.cible, p90: 0, w: 0 });
+      t.p90 += x.q.p90 * x.traites; t.w += x.traites;
+    });
+    Object.keys(parType).forEach(k => {
+      const t = parType[k], p90 = t.w ? t.p90 / t.w : 0;
+      if (p90 > t.cible) {
+        out.push({
+          regle: 'DÉRIVE DE DÉLAI', accent: '#A8241C', forme: 'rotate(45deg)',
+          phrase: t.n + ' : délai P90 de ' + F.nombre(p90, 1) + ' jours ouvrés pour un délai cible de ' + t.cible + ' jours.',
+          seuil: 'Seuil : P90 supérieur au délai cible du type d’acte.',
+          go: () => this._setFiltre('type', k)
+        });
+      }
+    });
+
+    // Règle 4 — échéance sous 90 jours.
+    const now = new Date(2026, 7, 11);
+    const exp = M.accords.filter(x => (!c.f.iso3 || x.iso3 === c.f.iso3) && x.echeance > now && (x.echeance - now) / 864e5 < M.seuils.echeanceJours);
+    if (exp.length) {
+      out.push({
+        regle: 'ÉCHÉANCE', accent: '#B4740E', forme: 'rotate(45deg)',
+        phrase: F.nombre(exp.length) + ' accords arrivent à échéance sous ' + M.seuils.echeanceJours + ' jours, dont ' + M.paysIndex[exp[0].iso3].nom + ' (' + F.date(exp[0].echeance) + ').',
+        seuil: 'Seuil : échéance sous ' + M.seuils.echeanceJours + ' jours.',
+        go: () => this._go('bilaterales')
+      });
+    }
+
+    // Règle 5 — dormance.
+    const derniere = {};
+    M.commissions.forEach(k => { const t = derniere[k.iso3]; if (!t || k.date > t) derniere[k.iso3] = k.date; });
+    const actifs = {}; M.accords.filter(x => x.echeance > now).forEach(x => { actifs[x.iso3] = 1; });
+    const dormants = Object.keys(actifs).filter(iso => {
+      if (c.f.iso3 && iso !== c.f.iso3) return false;
+      const d = derniere[iso];
+      return !d || (now - d) / 864e5 / 30.4 > M.seuils.dormanceMois;
+    });
+    if (dormants.length) {
+      out.push({
+        regle: 'DORMANCE', accent: '#B4740E', forme: 'none',
+        phrase: F.nombre(dormants.length) + ' partenariats sont sans commission mixte depuis plus de ' + M.seuils.dormanceMois + ' mois, dont ' + dormants.slice(0, 3).map(i => M.paysIndex[i].nom).join(', ') + '.',
+        seuil: 'Seuil : ' + M.seuils.dormanceMois + ' mois sans session.',
+        go: () => this._go('bilaterales')
+      });
+    }
+
+    // Règle 6 — rupture de tendance sur 3 périodes consécutives.
+    const idx = M.pIndex[this.state.ancre];
+    const serie = M.periodes.slice(Math.max(0, idx - 3), idx + 1).filter(p => p.ouverte)
+      .map(p => S(M.agg.slice(M.actes, [p.id], c.f), 'recus'));
+    if (serie.length >= 4) {
+      const d = [serie[1] - serie[0], serie[2] - serie[1], serie[3] - serie[2]];
+      if (d[0] > 0 && d[1] < 0 && d[2] < 0) {
+        out.push({
+          regle: 'RUPTURE DE TENDANCE', accent: '#A8241C', forme: 'rotate(45deg)',
+          phrase: 'Les actes reçus s’inscrivent en repli sur trois trimestres consécutifs après une phase de hausse (' + serie.map(v => F.nombre(v)).join(' → ') + ').',
+          seuil: 'Seuil : inversion de pente sur ' + M.seuils.ruptureTendance + ' périodes.',
+          go: () => this._go('actes')
+        });
+      }
+    }
+    return out.slice(0, 6).map((x, i) => Object.assign(x, { delay: (i * 0.06) + 's' }));
+  }
+
+  /* ============================ ACTIONS ================================== */
+  _go(m) { this._remonte({ module: m, tri: null, recherche: '', fiche: null }); }
+  _setFiltre(k, v) {
+    const f = Object.assign({}, this.state.filtres);
+    if (f[k] === v) delete f[k]; else f[k] = v;
+    this._remonte({ filtres: f, fiche: null });
+  }
+  _ouvrirFiche(iso) { this.setState({ fiche: iso }); }
+  _periodeLabel() {
+    const M = window.MAECI, ids = M.agg.rangePeriodes(this.state.gran, this.state.ancre);
+    const a = M.periodes[M.pIndex[ids[0]]], b = M.periodes[M.pIndex[ids[ids.length - 1]]];
+    return a === b ? a.libelle : a.libelle + ' – ' + b.libelle;
+  }
+  _maj() { return 'MISE À JOUR 11 AOÛT 2026'; }
+
+  /* ============================ RENDU ==================================== */
+  renderVals() {
+    if (!window.MAECI) return { titre: 'Chargement', kpis: [], charts: [], chartsDroite: [], alertes: [], frise: [], nav: [], granularites: [], puces: [], ariane: [], tableau: { cols: [], rows: [] } };
+    const M = window.MAECI, F = M.fmt, st = this.state;
+    const vue = this._vue();
+    const tableau = this._finaliserTableau(vue.tableau);
+    const seq = (st.seq || 0) % 2;
+    const A = (n) => seq ? n + 'B' : n;
+    const ids = M.agg.rangePeriodes(st.gran, st.ancre);
+    const cmpIds = M.agg.comparaison(st.gran, st.ancre, st.mode);
+    const idsSet = {}; ids.forEach(i => idsSet[i] = 1);
+    const cmpSet = {}; cmpIds.forEach(i => cmpSet[i] = 1);
+
+    const tous = ['ensemble', 'bourses', 'emplois', 'actes', 'economique', 'bilaterales', 'transversale', 'alertes', 'rapports'];
+    const modulesRole = {
+      'Administrateur': tous,
+      'Direction': tous,
+      'Analyste': ['ensemble', 'bourses', 'emplois', 'actes', 'economique', 'bilaterales', 'transversale', 'alertes'],
+      'Agent': ['actes', 'bourses', 'alertes']
+    };
+    const autorises = modulesRole[st.role] || modulesRole.Direction;
+    const navDef = [
+      { id: 'ensemble', label: 'Vue d’ensemble' }, { id: 'bourses', label: 'Bourses' },
+      { id: 'emplois', label: 'Emplois internationaux' }, { id: 'actes', label: 'Actes' },
+      { id: 'economique', label: 'Diplomatie économique' }, { id: 'bilaterales', label: 'Relations bilatérales' },
+      { id: 'transversale', label: 'Analyse transversale', sep: true }, { id: 'alertes', label: 'Alertes' },
+      { id: 'rapports', label: 'Rapports' }
+    ].filter(n => autorises.indexOf(n.id) >= 0);
+
+    const heights = [];
+    const volumes = M.periodes.map(p => M.agg.somme(M.agg.slice(M.actes, [p.id], st.filtres), 'recus'));
+    const maxVol = Math.max.apply(null, volumes.concat([1]));
+
+    const frise = M.periodes.map((p, i) => {
+      const sel = idsSet[p.id], cmp = cmpSet[p.id];
+      return {
+        h: Math.max(14, volumes[i] / maxVol * 100) + '%',
+        bg: sel ? '#B54708' : (p.encours ? 'repeating-linear-gradient(45deg,#E4E0D5 0 2px,transparent 2px 4px)' : (p.ouverte ? '#D7D1C2' : 'transparent')),
+        border: cmp ? '1.5px solid #B54708' : (p.ouverte ? '1px solid transparent' : '1px dashed #D2CBBA'),
+        foot: sel ? '#8F3A0A' : '#E4E0D5',
+        title: p.libelle + (p.encours ? ' — période en cours, données partielles' : (p.ouverte ? '' : ' — non ouverte')),
+        go: () => p.ouverte && this._remonte({ ancre: p.id, fiche: null })
+      };
+    });
+
+    const grans = [['mois', 'MOIS'], ['trimestre', 'TRIM.'], ['semestre', 'SEM.'], ['annee', 'ANNÉE'], ['triennal', 'TRIENNAL']];
+
+    const puces = Object.keys(st.filtres).map(k => {
+      const v = st.filtres[k];
+      const lib = { continent: 'Continent', iso3: 'Pays', domaine: 'Domaine', secteur: 'Secteur', genre: 'Genre', org: 'Organisation', type: 'Type d’acte' }[k] || k;
+      const val = k === 'iso3' ? M.paysIndex[v].nom : v;
+      return { label: lib + ' : ' + val, clear: () => this._setFiltre(k, v) };
+    });
+
+    const ariane = [{ label: 'Monde', fg: st.filtres.continent || st.filtres.iso3 ? '#5B6169' : '#14181C', fw: st.filtres.continent || st.filtres.iso3 ? '400' : '600', go: () => this._remonte({ filtres: {}, fiche: null }) }];
+    if (st.filtres.continent) ariane.push({ label: '› ' + st.filtres.continent, fg: st.filtres.iso3 ? '#5B6169' : '#14181C', fw: st.filtres.iso3 ? '400' : '600', go: () => this._remonte({ filtres: { continent: st.filtres.continent }, fiche: null }) });
+    if (st.filtres.iso3) ariane.push({ label: '› ' + M.paysIndex[st.filtres.iso3].nom, fg: '#14181C', fw: '600', go: () => { } });
+
+    const alertes = this._alertes(vue);
+    const ficheIso = st.fiche;
+    let fiche = null;
+    if (ficheIso) {
+      const p = M.paysIndex[ficheIso], now = new Date(2026, 7, 11);
+      const b = M.agg.somme(M.agg.slice(M.bourses, ids, { iso3: ficheIso }), 'disponibles');
+      const ac = M.agg.somme(M.agg.slice(M.actes, ids, { iso3: ficheIso }), 'recus');
+      const acc = M.accords.filter(x => x.iso3 === ficheIso && x.echeance > now);
+      const sig = M.agg.somme(M.agg.slice(M.projets, ids, { iso3: ficheIso }), 'montantSigne');
+      const comm = M.commissions.filter(x => x.iso3 === ficheIso).sort((a, b) => b.date - a.date)[0];
+      fiche = {
+        nom: p.nom, region: p.region + ' · ' + p.continent,
+        lignes: [
+          { k: 'Bourses (période)', v: F.nombre(b) },
+          { k: 'Actes reçus', v: F.nombre(ac) },
+          { k: 'Accords en vigueur', v: F.nombre(acc.length) },
+          { k: 'Montant signé', v: F.montant(sig) },
+          { k: 'Dernière commission', v: comm ? F.date(comm.date) : 'aucune' },
+          { k: 'Domaines couverts', v: F.nombre(Object.keys(acc.reduce((o, x) => (o[x.domaine] = 1, o), {})).length) }
+        ],
+        filtrer: () => this._setFiltre('iso3', ficheIso)
+      };
+    }
+
+    const accentsKpi = ['#B54708', '#2E6FC4', '#0E7C39', '#8A4FBF', '#C2830A'];
+    const kpis = vue.kpis.map((k, i) => Object.assign({}, k, {
+      delay: (i * 0.05) + 's',
+      kspan: st.carte ? k.span : 'auto',
+      taille: st.carte ? k.taille : (k.taille === '15px' ? '17px' : '26px'),
+      accent: accentsKpi[i % accentsKpi.length]
+    }));
+    const charts = vue.charts.map((c, i) => Object.assign({}, c, {
+      delay: (0.1 + i * 0.08) + 's',
+      isSteps: !!c.isSteps, isBars: !!c.isBars, isDiv: !!c.isDiv, isFlow: !!c.isFlow,
+      isBox: !!c.isBox, isMatrix: !!c.isMatrix, isTree: !!c.isTree, isTimeline: !!c.isTimeline,
+      isColonnes: !!c.isColonnes, isLine: !!c.isLine, isPie: !!c.isPie
+    }));
+
+    return {
+      titre: vue.titre, sousTitre: vue.sousTitre,
+      railW: st.rail ? '212px' : '58px',
+      railTextOp: st.rail ? 1 : 0,
+      railIcon: st.rail ? '‹ RÉDUIRE' : '›',
+      toggleRail: () => this.setState({ rail: !st.rail }),
+      role: st.role, roles: ['Administrateur', 'Direction', 'Analyste', 'Agent'],
+      setRole: (e) => this._remonte({ role: e.target.value, module: (modulesRole[e.target.value] || []).indexOf(st.module) >= 0 ? st.module : (modulesRole[e.target.value] || ['ensemble'])[0] }),
+      nav: navDef.map((n, i) => ({
+        label: n.label, num: '0' + (tous.indexOf(n.id) + 1), go: () => this._go(n.id),
+        bg: st.module === n.id ? '#FDEEDD' : 'transparent',
+        fg: st.module === n.id ? '#B54708' : '#57534A',
+        fw: st.module === n.id ? '600' : '400',
+        mark: st.module === n.id ? '#B54708' : 'transparent',
+        marge: n.sep ? '10px' : '0'
+      })),
+      navFuture: [],
+      granularites: grans.map(g => ({
+        label: g[1], go: () => this._remonte({ gran: g[0] }),
+        bg: st.gran === g[0] ? '#B54708' : '#FFFFFF', fg: st.gran === g[0] ? '#FFFFFF' : '#5B6169'
+      })),
+      periodeLabel: this._periodeLabel(),
+      prevP: () => { const i = M.pIndex[st.ancre]; if (i > 0) this._remonte({ ancre: M.periodes[i - 1].id }); },
+      nextP: () => { const i = M.pIndex[st.ancre]; if (i < M.periodes.length - 1 && M.periodes[i + 1].ouverte) this._remonte({ ancre: M.periodes[i + 1].id }); },
+      mode: st.mode, setMode: (e) => this._remonte({ mode: e.target.value }),
+      puces: puces, aDesFiltres: puces.length > 0,
+      resetFiltres: () => this._remonte({ filtres: {}, fiche: null }),
+      frise: frise, ariane: ariane, carteLegende: vue.carteLegende,
+      animPanelG: A('mSlideL'), animPanelD: A('mSlideR'), animCard: A('mLift'),
+      animGrow: A('mGrow'), animRise: A('mRise'), animFade: A('mFade'),
+      largeurG: this._regime().g, largeurD: this._regime().d,
+      /* La carte n'est plus le fond permanent : appelée à la demande, elle
+         rend sinon toute la surface aux cartes de données, qui passent en
+         grille multi-colonnes au lieu d'une colonne unique. */
+      montrerCarte: st.carte,
+      carteOp: st.carte ? 1 : 0,
+      cartePe: st.carte ? 'auto' : 'none',
+      toggleCarte: () => { const v = !st.carte; this.setState({ carte: v, seq: (st.seq || 0) + 1 }); if (v) this._paint(); },
+      carteBtnLabel: st.carte ? 'MASQUER LA CARTE' : 'AFFICHER LA CARTE',
+      carteBtnBg: st.carte ? '#B54708' : '#FFFFFF',
+      carteBtnFg: st.carte ? '#FFFFFF' : '#3C434A',
+      carteBtnBd: st.carte ? '#B54708' : '#E4E0D5',
+      /* La carte occupe désormais la bande centrale, non plus tout le
+         canevas : les panneaux gauche/droite deviennent des colonnes à
+         largeur fixe posées à côté d'elle plutôt que flottant par-dessus.
+         carteLeft/carteRight referment cette bande au fur et à mesure que
+         les panneaux apparaissent, avec une transition animée. */
+      carteLeft: st.carte ? 'calc(' + this._regime().g + ' + 24px)' : '0',
+      carteRight: st.carte && this._regime().droite && !vue.plein ? 'calc(' + this._regime().d + ' + 24px)' : '0',
+      secTop: '12px',
+      secGap: st.carte ? '10px' : '12px',
+      secCols: st.carte ? '1fr' : 'repeat(auto-fill, minmax(298px, 1fr))',
+      secRight: st.carte
+        ? 'calc(100% - ' + this._regime().g + ' - 12px)'
+        : (this._regime().droite && !vue.plein ? 'calc(' + this._regime().d + ' + 24px)' : '12px'),
+      cardBg: '#FFFFFF',
+      cardBlur: 'none',
+      kpiLabelH: st.carte ? '23px' : '0px',
+      kpiCols: st.carte ? '1fr 1fr' : 'repeat(5, minmax(0, 1fr))',
+      montrerDroite: this._regime().droite && !vue.plein,
+      montrerPanneaux: !vue.plein,
+      plein: vue.plein ? Object.assign({}, vue.plein, {
+        estAlertes: vue.plein.type === 'alertes', estRapport: vue.plein.type === 'rapport'
+      }) : null,
+      tiroirL: st.carte ? this._regime().dl : '12px',
+      tiroirR: st.carte ? this._regime().dr : (this._regime().droite && !vue.plein ? 'calc(' + this._regime().d + ' + 24px)' : '12px'),
+      kpis: kpis, charts: charts, chartsDroite: vue.chartsDroite || [],
+      partiel: ids.some(i => M.periodes[M.pIndex[i]].encours),
+      alertes: alertes, aucuneAlerte: alertes.length === 0, nbAlertes: alertes.length + ' règles',
+      fiche: fiche, fermerFiche: () => this.setState({ fiche: null }),
+      onPaysClic: (e) => this._ouvrirFiche(e.detail ? e.detail.iso3 : e),
+      tableau: tableau, tableauVide: tableau.rows.length === 0,
+      tiroirOuvert: st.tiroir, tiroirH: st.tiroir ? '46%' : '32px',
+      tiroirChevron: st.tiroir ? 'rotate(180deg)' : 'none',
+      tiroirAction: st.tiroir ? 'REPLIER' : 'DÉPLIER',
+      toggleTiroir: () => this.setState({ tiroir: !st.tiroir }),
+      gaucheBottom: st.tiroir ? '12px' : '44px',
+      recherche: st.recherche, setRecherche: (e) => this.setState({ recherche: e.target.value }),
+      triLabel: st.tri && tableau.cols[st.tri.i] ? tableau.cols[st.tri.i].label + (st.tri.dir > 0 ? ' croissant' : ' décroissant') : 'défaut',
+      exportCsv: () => {
+        const t = tableau;
+        const lignes = [t.cols.map(c => '"' + c.label + '"').join(';')]
+          .concat(t.rows.map(r => r.cells.map(c => '"' + String(c.txt).replace(/\u202F/g, ' ') + '"').join(';')));
+        const blob = new Blob(['\ufeff' + lignes.join('\n')], { type: 'text/csv;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'maeci-' + st.module + '-' + st.ancre + '.csv';
+        a.click();
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>
